@@ -19,23 +19,190 @@
 ***************************************************************************/
 
 /**
- * This module should include all functionality for making API calls.
+ * This module should include all functionality for making API calls. It is more
+ * or less the equivalent of amcatclient.py in javascript. Example:
+ *
+       require(["amcat/api"], function(Api){
+          Api({
+              username: "amcat",
+              password: "amcat",
+              host: "http://localhost:8000",
+              csrf: csrf_middleware_token,
+              authDone: function(api){
+                  api.getSavedQuery(1, 1, function(data){
+                      console.log(data);
+                  });
+              }
+          });
+      });*
+ *
  */
-define(["query/utils/poll", "query/utils/format"], function(poll){
-    return function(project, sets){
-        var base_url = "/api/v4/query";
+define(["jquery", "query/utils/poll", "query/utils/format"], function($, poll){
+    var nop = function(){};
 
-        return {
-            get_api_url: function(action){
-                var query_api_url = "{base_url}/{action}?format=json&project={project}&sets={sets}";
+    return function(options){
+        // Extend options with default options
+        options = $.extend({
+            // If true, call authenticate() automatically
+            autoConnect: false,
+            host: "https://amcat.nl",
+            api: "{host}/api/v4/{component}",
+            username: null,
+            password: null,
+            token: null,
+            csrf: null,
 
-                return query_api_url.format({
-                    action: action,
-                    base_url: base_url,
-                    project: project,
-                    sets: sets
-                });
+            // Request pages of N items
+            pageSize: 200,
+
+            // Throw an error if we exceed N pages (prevent accidental DOS-attack)
+            maxPages: 10,
+
+            // Call success callback after each page is fetched. If true, authSuccess
+            // may take another argument 'lastPage', which indicates whether the last
+            // page was reached.
+            streamPages: false,
+
+            authSuccess: nop,
+            authError: nop,
+            urls: {
+                get_token: 'get_token/',
+                search: 'search/',
+                action: '/query/summary/{action}/?format=json&project={project}&sets={sets}',
+                saved_query: 'projects/{project}/querys/{query}/'
+            }
+        }, options);
+
+        var token = options.token;
+        var host = options.host;
+
+        function assert_token(){
+            if (token === null){
+                throw "No token stored. You need to authenticate first!";
             }
         }
-    };
+
+        // Exposed user API
+        var api = {
+            /**
+             * Get full url for a specific API resource
+             * @param component: one of options.urls's attributes
+             * @returns: url (string)
+             */
+            getUrl: function(component){
+                return options.api.format({host: options.host, component: component});
+            },
+
+            /**
+             *
+             * @param action
+             * @returns: url (string)
+             */
+            getActionUrl: function(action, project, sets){
+                return options.urls.action.format({action: action, project: project, sets: sets});
+            },
+
+            getSavedQueryUrl: function(projectId, queryId){
+                return api.getUrl(options.urls.saved_query.format({project: projectId, query: queryId}));
+            },
+
+            getSavedQuery: function(projectId, queryId, success, error){
+                var url = api.getSavedQueryUrl(projectId, queryId);
+                return api.get({url: url}).success(success).error(error);
+            },
+
+            getAction: function(){
+
+            },
+
+            /**
+             * @param requestOptions: options passed to jQuery.ajax()
+             * @param method: HTTP method
+             */
+            request: function(method, requestOptions){
+                requestOptions = $.extend({}, {
+                    type: "POST",
+                    dataType: "json",
+                    headers: {
+                        "X-CSRFTOKEN": options.csrf,
+                        "X-HTTP-METHOD-OVERRIDE": method
+                    }
+                }, requestOptions);
+
+                if (token !== null){
+                    requestOptions.headers["AUTHORIZATION"] = "Token {}".format({token: token})
+                }
+
+                console.log(requestOptions)
+                return $.ajax(requestOptions);
+            },
+
+            get: function(opts){
+                opts = (opts === undefined) ? {} : opts;
+                return api.request("GET", $.extend({}, opts));
+            },
+
+            post: function(opts){
+                opts = (opts === undefined) ? {} : opts;
+                return api.request("POST", $.extend({}, opts));
+            },
+
+            /**
+             * Tries to authenticate with given username and password. If it succeeds,
+             * the token is stored and options.authSuccess is called, if it fails
+             * authError is called.
+             */
+            get_token: function(){
+                var url = api.getUrl(options.urls.get_token);
+
+                var data = {
+                    username: options.username,
+                    password: options.password
+                };
+
+                api.post({
+                    url: url,
+                    data: data
+                }).done(function(data){
+                    // I haz token!
+                    token = data.token;
+                    options.authSuccess(api);
+                }).fail(function(){
+                    options.authFail(api);
+                });
+
+                // (Hopefully) remove sensitive data from memory
+                delete options.username;
+                delete options.password;
+
+                return api;
+            },
+
+            /**
+             * Try to authenticate using given username/password/token. Throws if no
+             * valid values are given.
+             */
+            authenticate: function(){
+
+                // If token is set, we assume it is correct
+                if (token !== null){
+                    options.authSuccess();
+                    return api;
+                }
+
+                // Ensure username / password is given
+                if (options.username === null || options.password === null){
+                    throw "No token, and no username/password pair supplied."
+                }
+
+                return api.get_token();
+            }
+        };
+
+        if (options.autoConnect){
+            api.authenticate();
+        }
+
+        return api;
+    }
 });
