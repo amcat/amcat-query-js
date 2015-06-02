@@ -1,8 +1,7 @@
 define([
     "jquery", "renderjson", "query/utils/aggregation",
     "query/utils/poll", "moment", "query/utils/articlemodal", "query/valuerenderers",
-    "highcharts/highcharts", "highcharts.data",
-    "highcharts.heatmap", "highcharts.exporting",
+    "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse", "highlight"
     ], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers){
     var renderers = {};
