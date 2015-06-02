@@ -17,7 +17,7 @@
 * You should have received a copy of the GNU Affero General Public        *
 * License along with AmCAT.  If not, see <http://www.gnu.org/licenses/>.  *
 ***************************************************************************/
-define(["amcat/jshashset", "amcat/jshashtable"], function(){
+define(["jshashset", "jshashtable"], function(){
     var AGGR_HASH_FUCNTIONS = {
         "equals": function (a, b) {
             return (a.id === undefined) ? (a === b) : (a.id === b.id && a.label === b.label);
