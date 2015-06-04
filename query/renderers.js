@@ -148,7 +148,7 @@ define([
                 .attr("src", "data:image/png;base64," + data.image)
                 .attr("usemap", "#clustermap");
 
-            var map = $("<map>").attr("nam  e", "clustermap");
+            var map = $("<map>").attr("name", "clustermap");
 
             // Store for each clickable coordinate its article id
             var area;
