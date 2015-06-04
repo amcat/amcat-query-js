@@ -144,7 +144,7 @@ define([
             $("tr td:first-child", container).css("font-weight", "bold");
         },
         "application/json+clustermap": function(form_data, container, data){
-            var img = $("<img>")
+            var img = $("<img class='img-responsive'>")
                 .attr("src", "data:image/png;base64," + data.image)
                 .attr("usemap", "#clustermap");
 
@@ -191,7 +191,7 @@ define([
             return container.html(data);
         },
         "image/png+base64": function(form_data, container, data){
-            container.append($("<img>").attr("src", "data:image/png;base64," + data));
+            container.append($("<img class='img-responsive'>").attr("src", "data:image/png;base64," + data));
         },
         /**
          * Inserts given html into container, without processing it further.
@@ -370,7 +370,7 @@ define([
             });
 
             // Putting it together
-            table = $("<table class='aggregation dataTable table-striped'>");
+            table = $("<table class='aggregation dataTable table table-striped'>");
             table.append(thead).append(tbody);
             container.html(table);
 
