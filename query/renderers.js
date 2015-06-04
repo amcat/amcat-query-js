@@ -1,9 +1,9 @@
 define([
     "jquery", "renderjson", "query/utils/aggregation",
-    "query/utils/poll", "moment", "query/utils/articlemodal", "query/valuerenderers",
+    "query/utils/poll", "moment", "query/utils/articlemodal", "query/valuerenderers", "pnotify",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse", "highlight"
-    ], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers){
+    ], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers, PNotify){
     var renderers = {};
 
     function getType(axis){
