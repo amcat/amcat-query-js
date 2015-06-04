@@ -23,9 +23,10 @@ _Poll = (function($, uuid, opts){
 
     // Trust server to return attachment header?
     var download = opts.download | false;
+    var host = opts.host || "";
 
-    var TASK_API = "/api/v4/task?uuid=" + uuid + "&format=json";
-    var RESULT_API = "/api/v4/taskresult/" + uuid + "?format=json";
+    var TASK_API = host + "/api/v4/task?uuid=" + uuid + "&format=json";
+    var RESULT_API = host + "/api/v4/taskresult/" + uuid + "?format=json";
 
     function poll(){
         $.get(TASK_API).done(_poll_done).fail(_poll_fail);
