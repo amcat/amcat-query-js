@@ -284,7 +284,8 @@ define([
 
                                 articles_popup().show(form_data, filters);
                             }
-                        }
+                        },
+                        cursor: 'pointer'
                     }
                 }
             };
