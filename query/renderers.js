@@ -278,11 +278,14 @@ define([
 
                                 var filters = {};
                                 filters[y_type] = event.point.series.options.obj;
-                                filters[x_type] = columns[event.point.x];
+                                filters[x_type] = x_type === "date"
+                                                    ? event.point.x 
+                                                    : columns[event.point.x];
 
                                 articles_popup().show(form_data, filters);
                             }
-                        }
+                        },
+                        cursor: 'pointer'
                     }
                 }
             };
