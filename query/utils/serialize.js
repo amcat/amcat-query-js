@@ -21,7 +21,7 @@ define(["jquery"], function($){
         return o;
     };
 
-    return (function serializeForm(form, sets){
+    return (function serializeForm(form, jobs, sets){
         var formData = $(form).serializeObject();
 
         $.map($("input[type=checkbox]", form), function(input){
@@ -30,6 +30,7 @@ define(["jquery"], function($){
         });
 
         formData["articlesets"] = sets;
+        formData["codingjobs"] = jobs;
         return formData;
     });
 });

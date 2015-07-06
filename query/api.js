@@ -68,7 +68,7 @@ define(["jquery", "query/utils/poll", "query/utils/format"], function($, poll){
             urls: {
                 get_token: 'get_token/',
                 search: 'search/',
-                action: 'query/{action}?format=json&project={project}&sets={sets}',
+                action: 'query/{action}?format=json&project={project}&sets={sets}&jobs={jobs}',
                 saved_query: 'projects/{project}/querys/{query}/'
             }
         }, options);
@@ -98,8 +98,13 @@ define(["jquery", "query/utils/poll", "query/utils/format"], function($, poll){
              * @param action
              * @returns: url (string)
              */
-            getActionUrl: function(action, project, sets){
-                return api.getUrl(options.urls.action.format({action: action, project: project, sets: sets.join(",")}));
+            getActionUrl: function(action, project, jobs, sets){
+                return api.getUrl(options.urls.action.format({
+                    action: action,
+                    project: project,
+                    sets: sets.join(","),
+                    jobs: jobs.join(",")
+                }));
             },
 
             getSavedQueryUrl: function(projectId, queryId){

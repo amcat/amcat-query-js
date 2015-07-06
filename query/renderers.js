@@ -11,7 +11,7 @@ define([
     }
 
     function getSerie(form_data, aggr, x_key, x_type){
-        var serie = { obj: x_key, name: value_renderers[form_data["y_axis"]](x_key) };
+        var serie = { obj: x_key, name: value_renderers.getRenderer(form_data["y_axis"])(x_key) };
 
         if (x_type === "datetime"){
             serie.data = $.map(aggr.columns, function(column){
@@ -219,8 +219,8 @@ define([
                 });
             });
 
-            var x_renderer = value_renderers[form_data["x_axis"]];
-            var y_renderer = value_renderers[form_data["y_axis"]];
+            var x_renderer = value_renderers.getRenderer(form_data["x_axis"]);
+            var y_renderer = value_renderers.getRenderer(form_data["y_axis"]);
 
             container.highcharts({
                 title: "",
@@ -278,21 +278,18 @@ define([
 
                                 var filters = {};
                                 filters[y_type] = event.point.series.options.obj;
-                                filters[x_type] = x_type === "date"
-                                                    ? event.point.x 
-                                                    : columns[event.point.x];
+                                filters[x_type] = columns[event.point.x];
 
                                 articles_popup().show(form_data, filters);
                             }
-                        },
-                        cursor: 'pointer'
+                        }
                     }
                 }
             };
 
             // We need category labels if x_axis is not of type datetime
             if (x_type !== "datetime"){
-                var renderer = value_renderers[form_data["x_axis"]];
+                var renderer = value_renderers.getRenderer(form_data["x_axis"]);
                 chart.xAxis.categories = $.map(columns, renderer);
             }
 
@@ -345,7 +342,7 @@ define([
 
             // Adding header
             thead = $("<thead>").append($("<th>"));
-            renderer = value_renderers[form_data["y_axis"]];
+            renderer = value_renderers.getRenderer(form_data["y_axis"]);
             $.map(aggregation.columns, function(column){
                 thead.append($("<th>").text(renderer(column)).data("value", column));
             });
@@ -355,7 +352,7 @@ define([
             row_template = "<tr><th></th>" + row_template + "</tr>";
 
             tbody = $("<tbody>");
-            renderer = value_renderers[form_data["x_axis"]];
+            renderer = value_renderers.getRenderer(form_data["x_axis"]);
 
             $.map(aggregation.rows, function(row){
                 var row_element = $(row_template);
