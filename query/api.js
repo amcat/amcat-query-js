@@ -45,7 +45,7 @@ define(["jquery", "query/utils/poll", "query/utils/format"], function($, poll){
         options = $.extend({
             // If true, call authenticate() automatically
             autoConnect: false,
-            host: "https://amcat.nl",
+            host: window.location.origin,
             api: "{host}/api/v4/{component}",
             username: null,
             password: null,

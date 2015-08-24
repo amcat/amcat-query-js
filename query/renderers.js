@@ -1,13 +1,22 @@
 define([
-    "jquery", "renderjson", "query/utils/aggregation",
-    "query/utils/poll", "moment", "query/utils/articlemodal", "query/valuerenderers", "pnotify",
+    "jquery", "renderjson", "query/utils/aggregation", "query/utils/poll", "moment",
+    "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse", "highlight"
-    ], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers, PNotify){
+    ], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers, PNotify, API){
     var renderers = {};
+    API = API();
 
-    function getType(axis){
+    function getXType(axis){
         return (axis === "date") ? "datetime" : "category";
+    }
+
+    function getYType(axis){
+        if (axis === "date" || axis === "medium" || axis === "term" || axis === "set" || axis === "total"){
+            return "Number of articles";
+        }
+
+        return axis;
     }
 
     function getSerie(form_data, aggr, x_key, x_type){
@@ -254,8 +263,14 @@ define([
             return renderers["text/json+aggregation+barplot"](form_data, container, data, "scatter");
         },
 
+        /**
+         * Renders barplot. If a second y axis is selected, this function will call the script
+         * again, asking for a second aggregation. (This feels like a bit of a hack [and it
+         * probably is], but we can prevent 'compex' aggreagtion code server side.
+         */
         "text/json+aggregation+barplot": function(form_data, container, data, type){
-            var x_type = getType(form_data["x_axis"]);
+            var x_type = getXType(form_data["x_axis"]);
+            var y_type = getYType(form_data["y_axis"]);
             var aggregation = Aggregation(data).transpose();
             var columns = aggregation.columns;
 
@@ -263,9 +278,17 @@ define([
 
             var chart = {
                 title: "",
+                tooltip: { shared: true },
                 chart: { zoomType: 'xy', type: type },
                 xAxis: { allowDecimals: false, type: x_type},
-                yAxis: { allowDecimals: false, title: "total", min: 0 },
+                yAxis: [
+                    {
+                        allowDecimals: false,
+                        title: {
+                            "text": y_type
+                        }
+                    }
+                ],
                 series: $.map(aggregation.rows, function(x_key){
                     return getSerie(form_data, aggregation, x_key, x_type);
                 }),
@@ -286,6 +309,59 @@ define([
                     }
                 }
             };
+
+            // We will fetch the second y-axis again using polling
+            var y_axis_2 = form_data["y_axis_2"];
+            var y_axis_2_option = $("option[value={y}]".format({y: y_axis_2}));
+            var y_axis_2_label = $(y_axis_2_option.get(0)).text();
+
+            if (y_axis_2 !== ""){
+                chart.yAxis.push({
+                    title: { "text": y_axis_2_label },
+                    opposite: true
+                });
+
+                chart.chart.events = {
+                    load: function(event){
+                        // Load extra aggregation and draw it onscreen.
+                        var new_form_data = $.extend({}, form_data, {y_axis: form_data.y_axis_2});
+
+                        var url = API.getActionUrl(
+                            "aggregation", $("#query-screen").data("project"),
+                            form_data.codingjobs, form_data.articlesets
+                        );
+
+                        $.ajax({
+                            type: "POST",
+                            dataType: "json",
+                            url: url,
+                            data: new_form_data,
+                            headers: { "X-Available-Renderers": get_accepted_mimetypes().join(",") },
+                            traditional: true
+                        }).done(function(data){
+                            // Form accepted, we've been given a task uuid
+                            Poll(data.uuid).result(function(data){
+                                if (y_axis_2 === "total"){
+                                    var datapoints = data;
+                                } else {
+                                    var aggregation = Aggregation(data).transpose();
+                                    // TODO: Accept multiple series
+                                    var datapoints = aggregation.get(aggregation.rows[0]).entries();
+                                }
+
+                                this.addSeries({
+                                    name: y_axis_2_label,
+                                    yAxis: 1,
+                                    type: "spline",
+                                    data: datapoints
+                                })
+                            }.bind(this));
+                        }.bind(this))
+
+                    }
+                };
+            }
+
 
             // We need category labels if x_axis is not of type datetime
             if (x_type !== "datetime"){
@@ -322,7 +398,7 @@ define([
 
                 pnotify.open();
             }).mouseleave(function(){pnotify.remove()})
-                .click(function(){pnotify.remove});
+                .click(function(){pnotify.remove()});
         },
 
         /**
