@@ -236,7 +236,6 @@ define([
             });
             var x_renderer = value_renderers.getRenderer(form_data["x_axis"]);
             var y_renderer = value_renderers.getRenderer(form_data["y_axis"]);
-            console.log(aggregation.columns)
 
             container.highcharts({
                 title: "",
