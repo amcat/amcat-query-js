@@ -2,7 +2,7 @@ define([
     "jquery", "renderjson", "query/utils/aggregation", "query/utils/poll", "moment",
     "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
-    "papaparse", "highlight"
+    "papaparse"
     ], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers, PNotify, API){
     var renderers = {};
     API = API();
@@ -220,16 +220,23 @@ define([
         "text/json+aggregation+heatmap": function(form_data, container, data){
             var aggregation = Aggregation(data);
             var heatmap_data = [];
-            var columnIndices = aggregation.getColumnIndices();
 
-            $.each(data, function(i, row){
-                $.each(row[1], function(_, values){
-                    heatmap_data.push([i, columnIndices[values[0].id||values[0]], values[1]])
+            data.forEach(function(row, rowIdx){
+                rowValue = row[0]
+                rowFields = row[1]
+                rowFields.forEach(function(field){
+                    fieldData = field[0]
+                    fieldValue = field[1]
+                    fieldIdx = aggregation.columns.findIndex(function(item){
+                        return item.id == fieldData.id;
+                        });
+
+                    heatmap_data.push([rowIdx, fieldIdx, fieldValue])
                 });
             });
-
             var x_renderer = value_renderers.getRenderer(form_data["x_axis"]);
             var y_renderer = value_renderers.getRenderer(form_data["y_axis"]);
+            console.log(aggregation.columns)
 
             container.highcharts({
                 title: "",
@@ -241,11 +248,11 @@ define([
                 },
                 xAxis: {
                     allowDecimals: false,
-                    categories: $.map(aggregation.getRowNames(), x_renderer)
+                    categories: $.map(aggregation.rows, x_renderer)
                 },
                 yAxis: {
                     allowDecimals: false,
-                    categories: $.map(aggregation.getColumns(), y_renderer)
+                    categories: $.map(aggregation.columns, y_renderer)
                 },
                 series: [{
                     name: "x",
@@ -471,3 +478,4 @@ define([
         }
     });
 });
+
