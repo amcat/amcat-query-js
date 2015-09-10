@@ -55,10 +55,14 @@ define([
         var data = $("#result").find(".row.summary").data("form");
         data["aggregations"] = false;
         data["offset"] = $("#result").find(".articles > li").length;
-
+        
+        var url = API.getActionUrl(
+            "summary", $("#query-screen").data("project"),
+            data.codingjobs, data.articlesets);
+        
         $.ajax({
             type: "POST", dataType: "json",
-            url: API.get_api_url("summary"),
+            url: url,
             data: data,
             headers: { "X-Available-Renderers": get_accepted_mimetypes().join(",") },
             traditional: true
