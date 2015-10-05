@@ -8,7 +8,8 @@ define([
     API = API();
 
     function getXType(axis){
-        return (axis === "date") ? "datetime" : "category";
+        var intervals = ["year", "quarter", "month", "week", "day", "date"];
+        return (intervals.indexOf(axis) === -1) ? "category" : "datetime";
     }
 
     function getYType(axis){
@@ -273,8 +274,128 @@ define([
             return renderers["text/json+aggregation+barplot"](form_data, container, data, "scatter");
         },
 
-        /**
-         * Renders barplot. If a second y axis is selected, this function will call the script
+        "text/json+aggregation+codings+barplot": function(form_data, container, data, type){
+            type = (type === undefined) ? "column" : type;
+
+            var primary = form_data.primary;
+            var secondary = form_data.secondary;
+            var value1 = form_data.value1;
+            var value2 = form_data.value2;
+
+            var primary_type = getXType(primary);
+
+            var chart = {
+                title: "",
+                tooltip: {
+                    shared: true
+                },
+                chart: {
+                    zoomType: 'xy',
+                    type: type
+                },
+                xAxis: {
+                    allowDecimals: false,
+                    type: getXType(primary)
+                },
+                yAxis: [
+                    {
+                        allowDecimals: false,
+                        title: {
+                            "text": value1
+                        }
+                    }
+                ],
+                series: [],
+                plotOptions: {
+                    series: {
+                        events:{
+                            click: function(event){
+                                // Do things :)
+                            }
+                        }
+                    }
+                }
+            };
+
+            if (primary && !secondary && value1 && !value2){
+                // 1 aggr + 1 value
+                chart.series.push({
+                    name: primary,
+                    data: $(data).map(function(i, point){
+                        return [[point[0].label||point[0], point[1]]];
+                    })
+                });
+
+                chart.legend = {
+                    enabled: false
+                };
+            } else if(primary && secondary){
+                // 2 aggr + 1 value
+                var series = {};
+                var prim_val, sec_val, val;
+
+                data.forEach(function(point){
+                    sec_val = point[0][1];
+                    series[sec_val.id||sec_val] = {
+                        name: sec_val.label||sec_val,
+                        data: []
+                    };
+                });
+
+                data.forEach(function(point){
+                    prim_val = point[0][0];
+                    sec_val = point[0][1];
+                    val = point[1];
+                    series[sec_val.id||sec_val].data.push([prim_val.label||prim_val, val]);
+                });
+
+                chart.series = $.map(series, function(val){
+                    return val;
+                });
+            } else {
+                // 1 aggr + 2 value
+
+                // Add bars (first value)
+                chart.series.push({
+                    name: value1,
+                    data: $(data).map(function(i, point){
+                        if (point[1][0] === null) return null;
+                        return [[point[0].label||point[0], point[1][0]]];
+                    })
+                });
+
+                // Add line (second value)
+                chart.series.push({
+                    name: value2,
+                    yAxis: 1,
+                    type: "spline",
+                    data: $(data).map(function(i, point){
+                        if (point[1][1] === null) return null;
+                        return [[point[0].label||point[0], point[1][1]]];
+                    })
+                });
+
+                // Add second y-axis
+                chart.yAxis.push({
+                    title: { "text": secondary},
+                    opposite: true
+                });
+            }
+
+            container.highcharts(chart);
+        },
+
+        "text/json+aggregation+codings+line": function(form_data, container, data){
+            return renderers["text/json+aggregation+codings+barplot"](form_data, container, data, "line");
+        },
+
+
+        "text/json+aggregation+codings+scatter": function(form_data, container, data){
+            return renderers["text/json+aggregation+codings+barplot"](form_data, container, data, "scatter");
+        },
+
+
+        /* Renders barplot. If a second y axis is selected, this function will call the script
          * again, asking for a second aggregation. (This feels like a bit of a hack [and it
          * probably is], but we can prevent 'compex' aggreagtion code server side.
          */
@@ -312,9 +433,9 @@ define([
                                 var filters = {};
                                 filters[y_type] = event.point.series.options.obj;
                                 filters[x_type] = x_type == "date"
-                                    ? event.point.x 
+                                    ? event.point.x
                                     : columns[event.point.x];
-                                
+
                                 articles_popup().show(form_data, filters);
                             }
                         }
