@@ -322,7 +322,7 @@ define([
                 chart.series.push({
                     name: primary,
                     data: $(data).map(function(i, point){
-                        return [[point[0].label||point[0], point[1]]];
+                        return [[point[0][0].label||point[0][0], point[1][0]]];
                     })
                 });
 
@@ -345,7 +345,7 @@ define([
                 data.forEach(function(point){
                     prim_val = point[0][0];
                     sec_val = point[0][1];
-                    val = point[1];
+                    val = point[1][0];
                     series[sec_val.id||sec_val].data.push([prim_val.label||prim_val, val]);
                 });
 
@@ -360,7 +360,7 @@ define([
                     name: value1,
                     data: $(data).map(function(i, point){
                         if (point[1][0] === null) return null;
-                        return [[point[0].label||point[0], point[1][0]]];
+                        return [[point[0][0].label||point[0][0], point[1][0]]];
                     })
                 });
 
@@ -371,7 +371,7 @@ define([
                     type: "spline",
                     data: $(data).map(function(i, point){
                         if (point[1][1] === null) return null;
-                        return [[point[0].label||point[0], point[1][1]]];
+                        return [[point[0][0].label||point[0][0], point[1][1]]];
                     })
                 });
 
