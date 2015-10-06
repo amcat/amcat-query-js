@@ -361,7 +361,7 @@ define([
 
                 // Add bars (first value)
                 chart.series.push({
-                    name: value1,
+                    name: $("#id_value1 [value='{v}']".format({v: value1})).text(),
                     data: $(data).map(function(i, point){
                         if (point[1][0] === null) return null;
                         return [[point[0][0].label||point[0][0], point[1][0]]];
@@ -370,7 +370,7 @@ define([
 
                 // Add line (second value)
                 chart.series.push({
-                    name: value2,
+                    name: $("#id_value2 [value='{v}']".format({v: value2})).text(),
                     yAxis: 1,
                     type: "spline",
                     data: $(data).map(function(i, point){
