@@ -13,8 +13,12 @@ define([
     }
 
     function getYType(axis){
-        if (axis === "date" || axis === "medium" || axis === "term" || axis === "set" || axis === "total"){
+        if (axis === "count"){
             return "Number of articles";
+        }
+
+        if (axis.startsWith("avg(") && axis.endsWith(")")){
+            return "Average";
         }
 
         return axis;
@@ -295,13 +299,13 @@ define([
                 },
                 xAxis: {
                     allowDecimals: false,
-                    type: getXType(primary)
+                    type: getXType(primary),
                 },
                 yAxis: [
                     {
                         allowDecimals: false,
                         title: {
-                            "text": value1
+                            "text": getYType(value1)
                         }
                     }
                 ],
@@ -377,7 +381,7 @@ define([
 
                 // Add second y-axis
                 chart.yAxis.push({
-                    title: { "text": secondary},
+                    title: { "text": getYType(value2)},
                     opposite: true
                 });
             }
