@@ -3,7 +3,8 @@ define([
     "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse"
-    ], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers, PNotify, API){
+], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers, PNotify, API){
+    "use strict";
     var renderers = {};
     API = API();
 
@@ -13,7 +14,7 @@ define([
     }
 
     function getYType(axis){
-        if (axis === "date" || axis === "medium" || axis === "term" || axis === "set" || axis === "total"){
+        if(axis === "date" || axis === "medium" || axis === "term" || axis === "set" || axis === "total"){
             return "Number of articles";
         }
 
@@ -23,11 +24,11 @@ define([
     function getSerie(form_data, aggr, x_key, x_type){
         var serie = { obj: x_key, name: value_renderers.getRenderer(form_data["y_axis"])(x_key) };
 
-        if (x_type === "datetime"){
+        if(x_type === "datetime"){
             serie.data = $.map(aggr.columns, function(column){
                 return [[column, aggr.get(x_key).get(column) || 0]];
             });
-        } else {
+        } else{
             serie.data = $.map(aggr.columns, function(column){
                 return aggr.get(x_key).get(column) || 0;
             });
@@ -37,30 +38,31 @@ define([
     }
 
     function bottom(callback){
-        $(window).scroll(function() {
-            if($(window).scrollTop() + $(window).height() == $(document).height()) {
+        $(window).scroll(function(){
+            if($(window).scrollTop() + $(window).height() == $(document).height()){
                 $(window).off("scroll");
                 callback();
             }
         });
     }
 
-    function get_accepted_mimetypes() {
-        return $.map(renderers, function (_, mimetype) {
+    function get_accepted_mimetypes(){
+        return $.map(renderers, function(_, mimetype){
             return mimetype;
         });
     }
 
     function load_extra_summary(){
-        $("#result").find(".loading").show();
-        var data = $("#result").find(".row.summary").data("form");
+        var result = $("#result");
+        result.find(".loading").show();
+        var data = result.find(".row.summary").data("form");
         data["aggregations"] = false;
-        data["offset"] = $("#result").find(".articles > li").length;
-        
+        data["offset"] = result.find(".articles > li").length;
+
         var url = API.getActionUrl(
             "summary", $("#query-screen").data("project"),
             data.codingjobs, data.articlesets);
-        
+
         $.ajax({
             type: "POST", dataType: "json",
             url: url,
@@ -70,10 +72,10 @@ define([
         }).done(function(data){
             // Form accepted, we've been given a task uuid
             Poll(data.uuid).result(function(data){
-                $("#result").find(".loading").hide();
+                result.find(".loading").hide();
                 var articles = $(".articles > li", $(data));
-                if (articles.length === 0) return;
-                $("#result").find(".articles").append(articles);
+                if(articles.length === 0) return;
+                result.find(".articles").append(articles);
                 bottom(load_extra_summary);
             });
         })
@@ -100,7 +102,7 @@ define([
                 tds.pop();
 
                 $.each(tds, function(i, td){
-                    if ($(td).text() == "1"){
+                    if($(td).text() == "1"){
                         columns.push(i);
                     }
                 });
@@ -114,10 +116,10 @@ define([
                 articles_popup().show(form_data, {
                     query: "(" + queries.join(") AND (") + ")"
                 });
-            }).css("cursor","pointer");
+            }).css("cursor", "pointer");
         },
         "text/csv+table": function(form_data, container, data){
-            var table_data = Papa.parse(data, {skipEmptyLines: true}).data;
+            var table_data = Papa.parse(data, { skipEmptyLines: true }).data;
             return renderers["application/json+table"](form_data, container, table_data);
         },
         "application/json+tables": function(form_data, container, data){
@@ -184,9 +186,11 @@ define([
 
             // Register click event for each article
             $("area", map).click(function(event){
-                articles_popup().show(form_data, {term: {
-                    label: $(event.currentTarget).data("query")
-                }})
+                articles_popup().show(form_data, {
+                    term: {
+                        label: $(event.currentTarget).data("query")
+                    }
+                })
             });
 
             container.append(img).append(map);
@@ -227,14 +231,13 @@ define([
             var heatmap_data = [];
 
             data.forEach(function(row, rowIdx){
-                rowValue = row[0]
-                rowFields = row[1]
+                var rowFields = row[1];
                 rowFields.forEach(function(field){
-                    fieldData = field[0]
-                    fieldValue = field[1]
-                    fieldIdx = aggregation.columns.findIndex(function(item){
+                    var fieldData = field[0];
+                    var fieldValue = field[1];
+                    var fieldIdx = aggregation.columns.findIndex(function(item){
                         return item.id == fieldData.id;
-                        });
+                    });
 
                     heatmap_data.push([rowIdx, fieldIdx, fieldValue])
                 });
@@ -282,7 +285,6 @@ define([
             var value1 = form_data.value1;
             var value2 = form_data.value2;
 
-            var primary_type = getXType(primary);
 
             var chart = {
                 title: "",
@@ -308,7 +310,7 @@ define([
                 series: [],
                 plotOptions: {
                     series: {
-                        events:{
+                        events: {
                             click: function(event){
                                 // Do things :)
                             }
@@ -317,12 +319,12 @@ define([
                 }
             };
 
-            if (primary && !secondary && value1 && !value2){
+            if(primary && !secondary && value1 && !value2){
                 // 1 aggr + 1 value
                 chart.series.push({
                     name: primary,
                     data: $(data).map(function(i, point){
-                        return [[point[0][0].label||point[0][0], point[1][0]]];
+                        return [[point[0][0].label || point[0][0], point[1][0]]];
                     })
                 });
 
@@ -336,8 +338,8 @@ define([
 
                 data.forEach(function(point){
                     sec_val = point[0][1];
-                    series[sec_val.id||sec_val] = {
-                        name: sec_val.label||sec_val,
+                    series[sec_val.id || sec_val] = {
+                        name: sec_val.label || sec_val,
                         data: []
                     };
                 });
@@ -346,21 +348,21 @@ define([
                     prim_val = point[0][0];
                     sec_val = point[0][1];
                     val = point[1][0];
-                    series[sec_val.id||sec_val].data.push([prim_val.label||prim_val, val]);
+                    series[sec_val.id || sec_val].data.push([prim_val.label || prim_val, val]);
                 });
 
                 chart.series = $.map(series, function(val){
                     return val;
                 });
-            } else {
+            } else{
                 // 1 aggr + 2 value
 
                 // Add bars (first value)
                 chart.series.push({
                     name: value1,
                     data: $(data).map(function(i, point){
-                        if (point[1][0] === null) return null;
-                        return [[point[0][0].label||point[0][0], point[1][0]]];
+                        if(point[1][0] === null) return null;
+                        return [[point[0][0].label || point[0][0], point[1][0]]];
                     })
                 });
 
@@ -370,14 +372,14 @@ define([
                     yAxis: 1,
                     type: "spline",
                     data: $(data).map(function(i, point){
-                        if (point[1][1] === null) return null;
-                        return [[point[0][0].label||point[0][0], point[1][1]]];
+                        if(point[1][1] === null) return null;
+                        return [[point[0][0].label || point[0][0], point[1][1]]];
                     })
                 });
 
                 // Add second y-axis
                 chart.yAxis.push({
-                    title: { "text": secondary},
+                    title: { "text": secondary },
                     opposite: true
                 });
             }
@@ -411,7 +413,7 @@ define([
                 title: "",
                 tooltip: { shared: true },
                 chart: { zoomType: 'xy', type: type },
-                xAxis: { allowDecimals: false, type: x_type},
+                xAxis: { allowDecimals: false, type: x_type },
                 yAxis: [
                     {
                         allowDecimals: false,
@@ -425,7 +427,7 @@ define([
                 }),
                 plotOptions: {
                     series: {
-                        events:{
+                        events: {
                             click: function(event){
                                 var x_type = form_data["x_axis"];
                                 var y_type = form_data["y_axis"];
@@ -445,19 +447,19 @@ define([
 
             // We will fetch the second y-axis again using polling
             var y_axis_2 = form_data["y_axis_2"];
-            var y_axis_2_option = $("option[value={y}]".format({y: y_axis_2}));
+            var y_axis_2_option = $("option[value={y}]".format({ y: y_axis_2 }));
             var y_axis_2_label = $(y_axis_2_option.get(0)).text();
 
-            if (y_axis_2 !== ""){
+            if(y_axis_2 !== ""){
                 chart.yAxis.push({
                     title: { "text": y_axis_2_label },
                     opposite: true
                 });
 
                 chart.chart.events = {
-                    load: function(event){
+                    load: function(){
                         // Load extra aggregation and draw it onscreen.
-                        var new_form_data = $.extend({}, form_data, {y_axis: form_data.y_axis_2});
+                        var new_form_data = $.extend({}, form_data, { y_axis: form_data.y_axis_2 });
 
                         var url = API.getActionUrl(
                             "aggregation", $("#query-screen").data("project"),
@@ -474,12 +476,13 @@ define([
                         }).done(function(data){
                             // Form accepted, we've been given a task uuid
                             Poll(data.uuid).result(function(data){
-                                if (y_axis_2 === "total"){
-                                    var datapoints = data;
-                                } else {
+                                var datapoints;
+                                if(y_axis_2 === "total"){
+                                    datapoints = data;
+                                } else{
                                     var aggregation = Aggregation(data).transpose();
                                     // TODO: Accept multiple series
-                                    var datapoints = aggregation.get(aggregation.rows[0]).entries();
+                                    datapoints = aggregation.get(aggregation.rows[0]).entries();
                                 }
 
                                 this.addSeries({
@@ -497,7 +500,7 @@ define([
 
 
             // We need category labels if x_axis is not of type datetime
-            if (x_type !== "datetime"){
+            if(x_type !== "datetime"){
                 var renderer = value_renderers.getRenderer(form_data["x_axis"]);
                 chart.xAxis.categories = $.map(columns, renderer);
             }
@@ -506,7 +509,6 @@ define([
 
             // Show render warning
             var context_menu = $("g.highcharts-button > title:contains('context')", container).parent();
-            var close = false;
             var notification = {
                 text: 'If you decide to export an image, keep in mind the data is sent to highcharts.com' +
                 ' for rendering purposes. ',
@@ -530,8 +532,11 @@ define([
                 });
 
                 pnotify.open();
-            }).mouseleave(function(){pnotify.remove()})
-                .click(function(){pnotify.remove()});
+            }).mouseleave(function(){
+                pnotify.remove();
+            }).click(function(){
+                pnotify.remove();
+            });
         },
 
         /**
@@ -586,7 +591,7 @@ define([
             // Register click event (on table)
             table.click(function(event){
                 var td = $(event.target);
-                if (td.prop("tagName") === "TD"){
+                if(td.prop("tagName") === "TD"){
                     var x_type = form_data["x_axis"];
                     var y_type = form_data["y_axis"];
 
