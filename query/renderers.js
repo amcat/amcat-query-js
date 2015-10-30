@@ -450,7 +450,7 @@ define([
             var y_axis_2_option = $("option[value={y}]".format({ y: y_axis_2 }));
             var y_axis_2_label = $(y_axis_2_option.get(0)).text();
 
-            if(y_axis_2 !== ""){
+            if(y_axis_2 !== "" && y_axis_2 !== undefined){
                 chart.yAxis.push({
                     title: { "text": y_axis_2_label },
                     opposite: true
