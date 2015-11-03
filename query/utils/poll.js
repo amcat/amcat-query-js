@@ -25,7 +25,7 @@ _Poll = (function($, uuid, opts){
     var download = opts.download | false;
     var host = opts.host || "";
 
-    var TASK_API = host + "/api/v4/task?uuid=" + uuid + "&format=json";
+    var TASK_API = host + "/api/v4/tasks/" + uuid + "/?format=json";
     var RESULT_API = host + "/api/v4/taskresult/" + uuid + "?format=json";
 
     function poll(){
@@ -115,7 +115,7 @@ _Poll = (function($, uuid, opts){
     }
 
     function _poll_done(data, textStatus, jqXHR){
-        var task = data.results[0];
+        var task = data;
 
         if (task.ready){
             if (task.status === STATUS.SUCCESS){

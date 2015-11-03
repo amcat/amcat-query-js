@@ -23,6 +23,7 @@ define([
     function($, QueryDates, value_renderers){
     var defaults = { "modal": "#articlelist-dialog" };
     var SEARCH_API_URL = "/api/v4/search";
+    var ARTICLE_URL_FORMAT = "../articles/{id}";
 
     var elastic_filters = {
         date: function(form_data, value){
@@ -86,7 +87,13 @@ define([
 
             amcat.datatables.create_rest_table(
                 $modal.find(".articlelist").html(""),
-                SEARCH_API_URL + "?" + $.param(getSearchFilters(data), true)
+                SEARCH_API_URL + "?" + $.param(getSearchFilters(data), true),
+                {
+                    "setup_callback": function(tbl){
+                        tbl.fnSetRowlink(ARTICLE_URL_FORMAT, "new");
+
+                    }
+                }
             )
 
         }
