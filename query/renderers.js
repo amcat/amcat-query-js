@@ -25,22 +25,6 @@ define([
         return axis;
     }
 
-    function getSerie(form_data, aggr, x_key, x_type){
-        var serie = { obj: x_key, name: value_renderers.getRenderer(form_data["y_axis"])(x_key) };
-
-        if(x_type === "datetime"){
-            serie.data = $.map(aggr.columns, function(column){
-                return [[column, aggr.get(x_key).get(column) || 0]];
-            });
-        } else{
-            serie.data = $.map(aggr.columns, function(column){
-                return aggr.get(x_key).get(column) || 0;
-            });
-        }
-
-        return serie;
-    }
-
     function bottom(callback){
         $(window).scroll(function(){
             if($(window).scrollTop() + $(window).height() == $(document).height()){
@@ -281,14 +265,13 @@ define([
             return renderers["text/json+aggregation+barplot"](form_data, container, data, "scatter");
         },
 
-        "text/json+aggregation+codings+barplot": function(form_data, container, data, type){
+        "text/json+aggregation+barplot": function(form_data, container, data, type){
             type = (type === undefined) ? "column" : type;
 
             var primary = form_data.primary;
             var secondary = form_data.secondary;
             var value1 = form_data.value1;
             var value2 = form_data.value2;
-
 
             var chart = {
                 title: "",
@@ -301,7 +284,7 @@ define([
                 },
                 xAxis: {
                     allowDecimals: false,
-                    type: getXType(primary),
+                    type: getXType(primary)
                 },
                 yAxis: [
                     {
@@ -391,197 +374,93 @@ define([
             container.highcharts(chart);
         },
 
-        "text/json+aggregation+codings+line": function(form_data, container, data){
-            return renderers["text/json+aggregation+codings+barplot"](form_data, container, data, "line");
-        },
-
-
-        "text/json+aggregation+codings+scatter": function(form_data, container, data){
-            return renderers["text/json+aggregation+codings+barplot"](form_data, container, data, "scatter");
-        },
-
-
-        /* Renders barplot. If a second y axis is selected, this function will call the script
-         * again, asking for a second aggregation. (This feels like a bit of a hack [and it
-         * probably is], but we can prevent 'compex' aggreagtion code server side.
-         */
-        "text/json+aggregation+barplot": function(form_data, container, data, type){
-            var x_type = getXType(form_data["x_axis"]);
-            var y_type = getYType(form_data["y_axis"]);
-            var aggregation = Aggregation(data).transpose();
-            var columns = aggregation.columns;
-
-            type = (type === undefined) ? "column" : type;
-
-            var chart = {
-                title: "",
-                tooltip: { shared: true },
-                chart: { zoomType: 'xy', type: type },
-                xAxis: { allowDecimals: false, type: x_type },
-                yAxis: [
-                    {
-                        allowDecimals: false,
-                        title: {
-                            "text": y_type
-                        }
-                    }
-                ],
-                series: $.map(aggregation.rows, function(x_key){
-                    return getSerie(form_data, aggregation, x_key, x_type);
-                }),
-                plotOptions: {
-                    series: {
-                        events: {
-                            click: function(event){
-                                var x_type = form_data["x_axis"];
-                                var y_type = form_data["y_axis"];
-
-                                var filters = {};
-                                filters[y_type] = event.point.series.options.obj;
-                                filters[x_type] = x_type == "date"
-                                    ? event.point.x
-                                    : columns[event.point.x];
-
-                                articles_popup().show(form_data, filters);
-                            }
-                        }
-                    }
-                }
-            };
-
-            // We will fetch the second y-axis again using polling
-            var y_axis_2 = form_data["y_axis_2"];
-            var y_axis_2_option = $("option[value={y}]".format({ y: y_axis_2 }));
-            var y_axis_2_label = $(y_axis_2_option.get(0)).text();
-
-            if(y_axis_2 !== "" && y_axis_2 !== undefined){
-                chart.yAxis.push({
-                    title: { "text": y_axis_2_label },
-                    opposite: true
-                });
-
-                chart.chart.events = {
-                    load: function(){
-                        // Load extra aggregation and draw it onscreen.
-                        var new_form_data = $.extend({}, form_data, { y_axis: form_data.y_axis_2 });
-
-                        var url = API.getActionUrl(
-                            "aggregation", $("#query-screen").data("project"),
-                            form_data.codingjobs, form_data.articlesets
-                        );
-
-                        $.ajax({
-                            type: "POST",
-                            dataType: "json",
-                            url: url,
-                            data: new_form_data,
-                            headers: { "X-Available-Renderers": get_accepted_mimetypes().join(",") },
-                            traditional: true
-                        }).done(function(data){
-                            // Form accepted, we've been given a task uuid
-                            Poll(data.uuid).result(function(data){
-                                var datapoints;
-                                if(y_axis_2 === "total"){
-                                    datapoints = data;
-                                } else{
-                                    var aggregation = Aggregation(data).transpose();
-                                    // TODO: Accept multiple series
-                                    datapoints = aggregation.get(aggregation.rows[0]).entries();
-                                }
-
-                                this.addSeries({
-                                    name: y_axis_2_label,
-                                    yAxis: 1,
-                                    type: "spline",
-                                    data: datapoints
-                                })
-                            }.bind(this));
-                        }.bind(this))
-
-                    }
-                };
-            }
-
-
-            // We need category labels if x_axis is not of type datetime
-            if(x_type !== "datetime"){
-                var renderer = value_renderers.getRenderer(form_data["x_axis"]);
-                chart.xAxis.categories = $.map(columns, renderer);
-            }
-
-            container.highcharts(chart);
-
-            // Show render warning
-            var context_menu = $("g.highcharts-button > title:contains('context')", container).parent();
-            var notification = {
-                text: 'If you decide to export an image, keep in mind the data is sent to highcharts.com' +
-                ' for rendering purposes. ',
-                type: 'info',
-                icon: 'ui-icon ui-icon-locked',
-                auto_display: false,
-                history: false,
-                stack: false,
-                animate_speed: 0,
-                opacity: 0.9,
-                hide: false
-            };
-
-            $("title", context_menu).text("");
-            var pnotify = new PNotify(notification);
-
-            $(context_menu).mouseenter(function(event){
-                pnotify.get().css({
-                    'top': event.clientY + 12,
-                    'left': event.clientX + 12 - 320
-                });
-
-                pnotify.open();
-            }).mouseleave(function(){
-                pnotify.remove();
-            }).click(function(){
-                pnotify.remove();
-            });
-        },
-
         /**
-         * Renders aggregation as table. Each 'th' element has a data property 'value',
-         * which can be used to access the original server data for that particular
-         * element. For example, for a medium:
+         * Renders aggregation data. It expects a slightly different format than the
+         * other render functions. It expects a matrix in the following manner:
          *
-         *    { id: 1, label: "test" }
+         *      {
+         *          rows: ["A1", "A2"]
+         *          columns: ["B1", "B2"]
+         *          data: [
+         *              [1, 2],
+         *              [3, 4]
+         *          ]
+         *      }
          *
-         * or a date:
-         *
-         *    1371160800000
+         * It can handle situations with multiple values as well, rendering subcolumns
+         * where needed.
          */
-        "text/json+aggregation+table": function(form_data, container, data){
+        "text/json+aggregation+table": function(form_data, container, matrix){
             var row_template, table, thead, tbody, renderer;
-            var aggregation = Aggregation(data);
 
-            // Adding header
+            var primary = form_data.primary;
+            var secondary = form_data.secondary;
+            var value1 = form_data.value1;
+            var value2 = form_data.value2;
+
+            var value1type = $("#id_value1 [value='{v}']".format({v: value1})).text();
+            var value2type = $("#id_value2 [value='{v}']".format({v: value2})).text();
+
             thead = $("<thead>").append($("<th>"));
-            renderer = value_renderers.getRenderer(form_data["y_axis"]);
-            $.map(aggregation.columns, function(column){
-                thead.append($("<th>").text(renderer(column)).data("value", column));
-            });
+            if (!secondary && !value2){
+                // Only one column needed, which is of type 'value1'
+                thead.append($("<th>").text(value1type));
+            } else if (!secondary) {
+                // Two columns needed, but both are simple value types
+                thead.append($("<th>").text(value1type));
+                thead.append($("<th>").text(value2type));
+            } else if (!value2) {
+                // N columns needed, all of the same type
+                renderer = value_renderers.getRenderer(secondary);
+                $.map(matrix.columns, function(column){
+                    thead.append($("<th>").text(renderer(column)).data("value", column));
+                });
+            } else {
+                // Complex column (N columns + 2 values per column) needed
+                renderer = value_renderers.getRenderer(secondary);
+
+                // Add first header row
+                thead.html("<tr><th rowspan='2'></th></tr>");
+                $.map(matrix.columns, function(column){
+                    var th = $("<th>");
+                    th.text(renderer(column));
+                    th.attr("colspan", 2);
+                    th.data("value", column);
+                    thead.find("tr").append(th);
+                });
+
+                // Add second header row
+                var tr = $("<tr>");
+                $.map(matrix.columns, function(_){
+                    tr.append($("<th>").text(value1type));
+                    tr.append($("<th>").text(value2type));
+                });
+                thead.append(tr);
+            }
+
+            // Exploit (abuse?) javascript's coercing..
+            var numberOfValues = !!value1 + !!value2;
 
             // Adding rows. Using row templates to prevent lots of small inserts
-            row_template = (new Array(aggregation.columns.length + 1)).join("<td></td>");
+            row_template = (new Array(matrix.columns.length * numberOfValues + 1)).join("<td></td>");
             row_template = "<tr><th></th>" + row_template + "</tr>";
 
             tbody = $("<tbody>");
-            renderer = value_renderers.getRenderer(form_data["x_axis"]);
+            renderer = value_renderers.getRenderer(primary);
 
-            $.map(aggregation.rows, function(row){
+            $.each(matrix.data, function(rownr, rowdata){
+                // Set th elements text- and value property
+                var row = matrix.rows[rownr];
                 var row_element = $(row_template);
                 row_element.find("th").text(renderer(row)).data("value", row);
 
-                var value;
-                $.each(aggregation.columns, function(i, column){
-                    // Check for float / integer. And wtf javascript, why not float type?!
-                    value = aggregation.get(row).get(column) || 0;
-                    value = (value % 1 === 0) ? value : value.toFixed(2);
-                    row_element.find("td").eq(i).text(value);
+                $.each(rowdata, function(colnr, values){
+                    $.each(values, function(valuenr, value){
+                        // Check for float / integer. And wtf javascript, why no float type?!
+                        if (value === null) return;
+                        value = (value % 1 === 0) ? value : value.toFixed(2);
+                        row_element.find("td").eq(colnr*2 + valuenr).text(value);
+                    });
                 });
 
                 tbody.append(row_element);
@@ -591,25 +470,6 @@ define([
             table = $("<table class='aggregation dataTable table table-striped'>");
             table.append(thead).append(tbody);
             container.html(table);
-
-            // Register click event (on table)
-            table.click(function(event){
-                var td = $(event.target);
-                if(td.prop("tagName") === "TD"){
-                    var x_type = form_data["x_axis"];
-                    var y_type = form_data["y_axis"];
-
-                    var col = td.closest('table').find('thead th').eq(td.index());
-                    var row = td.parent().children().eq(0);
-
-                    var filters = {};
-                    filters[x_type] = row.data('value');
-                    filters[y_type] = col.data('value');
-                    articles_popup().show(form_data, filters);
-                }
-            });
-
-            return table;
         }
     });
 });

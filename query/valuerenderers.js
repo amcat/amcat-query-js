@@ -3,7 +3,7 @@ define(["moment"], function(moment){
         "medium": function(medium){
             return medium.id + " - " + medium.label;
         },
-        "set": function(articleset){
+        "articleset": function(articleset){
             return articleset.id + " - " + articleset.label;
         },
         "schemafield": function(schemafield){
@@ -18,7 +18,7 @@ define(["moment"], function(moment){
         "term": function(term){
             return term.id;
         },
-        "getRenderer": function(name){
+        "getRenderer": function(name, dflt){
             var renderer = renderers[name];
             if (renderer !== undefined){
                 return renderer;
@@ -26,6 +26,15 @@ define(["moment"], function(moment){
 
             if (name.indexOf("schemafield_") === 0){
                 return renderers.schemafield;
+            }
+
+            var intervals = ["day", "week", "month", "quarter", "year"];
+            if (intervals.indexOf(name) !== -1){
+                return renderers.date;
+            }
+
+            if (dflt){
+                return dflt;
             }
 
             throw "Could not find renderer '" + name + "'";
