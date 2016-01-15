@@ -457,9 +457,9 @@ define([
                 $.each(rowdata, function(colnr, values){
                     $.each(values, function(valuenr, value){
                         // Check for float / integer. And wtf javascript, why no float type?!
-                        if (value === null) return;
+                        if (value === null) return true;
                         value = (value % 1 === 0) ? value : value.toFixed(2);
-                        row_element.find("td").eq(colnr*2 + valuenr).text(value);
+                        row_element.find("td").eq(colnr*numberOfValues + valuenr).text(value);
                     });
                 });
 
