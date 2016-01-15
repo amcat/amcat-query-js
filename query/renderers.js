@@ -373,7 +373,8 @@ define([
                 });
             }
 
-            container.highcharts(chart);
+            container.append($("<div class='ht'></div>"));
+            container.find(".ht").highcharts(chart);
         },
 
         /**
