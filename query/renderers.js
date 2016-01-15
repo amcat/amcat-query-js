@@ -1,9 +1,9 @@
 define([
-    "jquery", "renderjson", "query/utils/aggregation", "query/utils/poll", "moment",
+    "jquery", "renderjson", "query/utils/poll", "moment",
     "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse"
-], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers, PNotify, API){
+], function($, renderjson, Poll, moment, articles_popup, value_renderers, PNotify, API){
     "use strict";
     var renderers = {};
     API = API();
@@ -215,6 +215,8 @@ define([
          *   http://www.highcharts.com/demo/heatmap
          */
         "text/json+aggregation+heatmap": function(form_data, container, data){
+            alert("Heatmap disabled for now..");
+
             var aggregation = Aggregation(data);
             var heatmap_data = [];
 
@@ -470,6 +472,36 @@ define([
             table = $("<table class='aggregation dataTable table table-striped'>");
             table.append(thead).append(tbody);
             container.html(table);
+
+            // Register click event (on table)
+            table.click(function(event){
+                if (window.location.hash.slice(1) !== "aggregation"){
+                    return new PNotify({
+                        "type": "info",
+                        "text": "Viewing articles / codings not yet supported in coding aggregations."
+                    });
+                }
+
+                var td = $(event.target);
+                if(td.prop("tagName") === "TD"){
+                    // Do not process empty cells
+                    if (!td.text()){
+                        return;
+                    }
+
+                    var col = td.closest('table').find('thead th').eq(td.index());
+                    var row = td.parent().children().eq(0);
+
+                    var filters = {};
+                    filters[primary] = row.data('value');
+
+                    if (secondary){
+                        filters[secondary] = col.data('value');
+                    }
+
+                    articles_popup().show(form_data, filters);
+                }
+            });
         }
     });
 });

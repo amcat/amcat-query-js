@@ -26,16 +26,39 @@ define([
     var ARTICLE_URL_FORMAT = "../articles/{id}";
 
     var elastic_filters = {
-        date: function(form_data, value){
-            var range = QueryDates.merge([
+        year: function(form_data, value, filters){
+            return elastic_filters.date(form_data, value, filters, "year");
+        },
+        quarter: function(form_data, value, filters){
+            return elastic_filters.date(form_data, value, filters, "quarter");
+        },
+        month: function(form_data, value, filters){
+            return elastic_filters.date(form_data, value, filters, "month");
+        },
+        week: function(form_data, value, filters){
+            return elastic_filters.date(form_data, value, filters, "week");
+        },
+        day: function(form_data, value, filters){
+            return elastic_filters.date(form_data, value, filters, "day");
+        },
+        date: function(form_data, value, filters, interval){
+            var ranges = [
                 QueryDates.get_range_from_form(form_data),
-                QueryDates.get_range(value, form_data["interval"])
-            ]);
+                QueryDates.get_range(value, interval)
+            ];
+
+            if (filters._filtered_before_hack){
+                // Two date filters are active; we need to find the intersection
+                ranges.push(filters);
+            }
+
+            var range = QueryDates.merge(ranges);
 
             return {
                 datetype: "between",
                 start_date: range.start_date,
-                end_date: range.end_date
+                end_date: range.end_date,
+                _filtered_before_hack: true
             };
         },
         medium: function(form_data, value){
@@ -67,8 +90,10 @@ define([
 
             $.each(filters, function(type, value){
                 if (elastic_filters[type] !== undefined){
-                    $.extend(data, elastic_filters[type](form_data, value));
+                    // Use elastic mapping function
+                    $.extend(data, elastic_filters[type](form_data, value, data));
                 } else {
+                    // Store raw data as filter
                     data[type] = value;
                 }
             });
@@ -91,11 +116,9 @@ define([
                 {
                     "setup_callback": function(tbl){
                         tbl.fnSetRowlink(ARTICLE_URL_FORMAT, "new");
-
                     }
                 }
             )
-
         }
 
         /**
