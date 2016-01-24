@@ -413,9 +413,37 @@ define([
 
             type = (type === undefined) ? "column" : type;
 
+            var tooltipOptions = {shared: true};
+            tooltipOptions.pointFormatter = function(){
+                var pointstr = "";
+                var x;
+                switch(x_type){
+                    case "datetime":
+                        x = value_renderers.getRenderer("date")(this.x);
+                        break;
+
+                    case "category":
+                        x = this.category;
+                        break;
+
+                    default:
+                        x = this.x;
+                        break;
+                }
+
+                pointstr += "x: <strong>" + x + "</strong><br>";
+
+
+                var y = this.y;
+                pointstr += "y: <strong>" + y + "</strong>";
+                return pointstr;
+            };
+
+
+
             var chart = {
                 title: "",
-                tooltip: { shared: true },
+                tooltip: tooltipOptions,
                 chart: { zoomType: 'xy', type: type },
                 xAxis: { allowDecimals: false, type: x_type },
                 yAxis: [
