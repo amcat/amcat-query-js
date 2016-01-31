@@ -139,6 +139,7 @@ define([
                 })
             );
 
+
             var table = $("<table class='table table-striped'>").append([thead, tbody]);
             container.append(table);
             return table;
@@ -359,7 +360,7 @@ define([
                 chart.series.push({
                     name: $("#id_value2 [value='{v}']".format({v: value2})).text(),
                     yAxis: 1,
-                    type: "spline",
+                    type: "scatter",
                     data: $(data).map(function(i, point){
                         if(point[1][1] === null) return null;
                         return [[point[0][0].label || point[0][0], point[1][1]]];
