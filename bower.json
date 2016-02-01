@@ -27,7 +27,6 @@
     "moment": "",
     "papaparse": "4.1.0",
     "renderjson": "",
-    "highlight": "",
     "jquery-cookie": "",
     "jshashtable": "git://github.com/timdown/jshashtable.git"
   }

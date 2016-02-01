@@ -77,7 +77,6 @@ define([
             var text = $(renderjson(data)).text().replace(/{...}|\[ ... \]/g, "");
             var code = $("<code class='json'>").text(text);
             $(container).append($('<pre style="background-color:#f8f8ff;">').append(code));
-            hljs.highlightBlock($("pre", container).get(0));
         },
         "application/json+clustermap+table": function(form_data, container, data){
             var table = renderers["text/csv+table"](container, data.csv);
