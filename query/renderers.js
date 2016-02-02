@@ -1,9 +1,9 @@
 define([
-    "jquery", "renderjson", "query/utils/aggregation", "query/utils/poll", "moment",
+    "jquery", "renderjson", "query/utils/aggregation", "query/utils/poll", "query/utils/tools", "moment",
     "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse"
-], function($, renderjson, Aggregation, Poll, moment, articles_popup, value_renderers, PNotify, API){
+], function($, renderjson, Aggregation, Poll, query_tools, moment, articles_popup, value_renderers, PNotify, API){
     "use strict";
     var renderers = {};
     API = API();
@@ -18,7 +18,7 @@ define([
             return "Number of articles";
         }
 
-        if (axis.startsWith("avg(") && axis.endsWith(")")){
+        if(axis.startsWith("avg(") && axis.endsWith(")")){
             return "Average";
         }
 
@@ -32,6 +32,7 @@ define([
             serie.data = $.map(aggr.columns, function(column){
                 return [[column, aggr.get(x_key).get(column) || 0]];
             });
+            serie.data = query_tools.addDatetimeAggregationDefaultZeroes(form_data, serie.data);
         } else{
             serie.data = $.map(aggr.columns, function(column){
                 return aggr.get(x_key).get(column) || 0;
