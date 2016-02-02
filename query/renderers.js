@@ -37,7 +37,6 @@ define([
                 return aggr.get(x_key).get(column) || 0;
             });
         }
-
         return serie;
     }
 
@@ -414,29 +413,13 @@ define([
             type = (type === undefined) ? "column" : type;
 
             var tooltipOptions = {shared: true};
-            tooltipOptions.pointFormatter = function(){
-                var pointstr = "";
-                var x;
-                switch(x_type){
-                    case "datetime":
-                        x = value_renderers.getRenderer("date")(this.x);
-                        break;
-
-                    case "category":
-                        x = this.category;
-                        break;
-
-                    default:
-                        x = this.x;
-                        break;
+            tooltipOptions.pointFormatter = function(default_format){
+                var point = $.extend({}, this);
+                var date = "";
+                if(x_type === "datetime"){
+                    point.x = Highcharts.dateFormat("%Y-%m-%d", point.x);
                 }
-
-                pointstr += "x: <strong>" + x + "</strong><br>";
-
-
-                var y = this.y;
-                pointstr += "y: <strong>" + y + "</strong>";
-                return pointstr;
+                return Highcharts.format(default_format, {point: point, series: point.series, formatted_date: date});
             };
 
 
