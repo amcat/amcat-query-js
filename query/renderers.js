@@ -1,9 +1,9 @@
 define([
-    "jquery", "renderjson", "query/utils/poll", "moment",
+    "jquery", "renderjson", "query/utils/poll", "query/utils/tools", "moment",
     "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse"
-], function($, renderjson, Poll, moment, articles_popup, value_renderers, PNotify, API){
+], function($, renderjson, Poll, query_tools, moment, articles_popup, value_renderers, PNotify, API){
     "use strict";
     var renderers = {};
     API = API();
@@ -18,7 +18,7 @@ define([
             return "Number of articles";
         }
 
-        if (axis.startsWith("avg(") && axis.endsWith(")")){
+        if(axis.startsWith("avg(") && axis.endsWith(")")){
             return "Average";
         }
 
@@ -275,11 +275,20 @@ define([
             var value1 = form_data.value1;
             var value2 = form_data.value2;
 
+
+            var tooltipOptions = {shared: true};
+            tooltipOptions.pointFormatter = function(default_format){
+                var point = $.extend({}, this);
+                var date = "";
+                if(x_type === "datetime"){
+                    point.x = Highcharts.dateFormat("%Y-%m-%d", point.x);
+                }
+                return Highcharts.format(default_format, {point: point, series: point.series, formatted_date: date});
+            };
+
             var chart = {
                 title: "",
-                tooltip: {
-                    shared: true
-                },
+                tooltip: tooltipOptions,
                 chart: {
                     zoomType: 'xy',
                     type: type
