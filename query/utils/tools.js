@@ -28,7 +28,7 @@ define(["moment"], function(moment){
      * @param data {[][]}
      * @returns {[][]}
      */
-    function addDatetimeAggregationDefaultZeroes(form_data, data)
+    function aggregationDefaultNullToZero(form_data, data)
     {
         var dataDict = {};
         var minX = data[0][0];
@@ -55,6 +55,6 @@ define(["moment"], function(moment){
 
     var tools = {};
 
-    tools.addDatetimeAggregationDefaultZeroes = addDatetimeAggregationDefaultZeroes;
+    tools.aggregationDefaultNullToZero = aggregationDefaultNullToZero;
     return tools;
 });

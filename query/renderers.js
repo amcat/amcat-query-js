@@ -32,7 +32,7 @@ define([
             serie.data = $.map(aggr.columns, function(column){
                 return [[column, aggr.get(x_key).get(column) || 0]];
             });
-            serie.data = query_tools.addDatetimeAggregationDefaultZeroes(form_data, serie.data);
+            serie.data = query_tools.aggregationDefaultNullToZero(form_data, serie.data);
         } else{
             serie.data = $.map(aggr.columns, function(column){
                 return aggr.get(x_key).get(column) || 0;
