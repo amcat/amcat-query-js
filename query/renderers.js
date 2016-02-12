@@ -96,7 +96,7 @@ define([
             hljs.highlightBlock($("pre", container).get(0));
         },
         "application/json+clustermap+table": function(form_data, container, data){
-            var table = renderers["text/csv+table"](container, data.csv);
+            var table = renderers["text/csv+table"](form_data, container, data.csv);
             table.addClass("table-hover");
 
             $("tr", table).click(function(event){
