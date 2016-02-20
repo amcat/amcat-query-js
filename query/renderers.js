@@ -30,13 +30,16 @@ define([
 
         if(x_type === "datetime"){
             serie.data = $.map(aggr.columns, function(column){
-                return [[column, aggr.get(x_key).get(column) || 0]];
+                return [[Date.parse(column), aggr.get(x_key).get(column) || 0]];
             });
         } else{
             serie.data = $.map(aggr.columns, function(column){
                 return aggr.get(x_key).get(column) || 0;
             });
         }
+        serie.data.sort(function(a, b){
+            return a[0] - b[0];
+        })
         return serie;
     }
 
