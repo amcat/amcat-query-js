@@ -1,9 +1,9 @@
 define([
-    "jquery", "renderjson", "query/utils/poll", "query/utils/tools", "moment",
+    "jquery", "renderjson", "query/utils/poll", "moment",
     "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse"
-], function($, renderjson, Poll, query_tools, moment, articles_popup, value_renderers, PNotify, API){
+], function($, renderjson, Poll, moment, articles_popup, value_renderers, PNotify, API){
     "use strict";
     var renderers = {};
     API = API();
