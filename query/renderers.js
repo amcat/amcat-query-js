@@ -275,13 +275,19 @@ define([
             var value1 = form_data.value1;
             var value2 = form_data.value2;
 
+            if(getXType(primary) === "datetime"){
+                data.forEach(function(point){
+                    point[0][0] = Date.parse(point[0][0]);
+                });
+            }
+
 
             var tooltipOptions = {shared: true};
             tooltipOptions.pointFormatter = function(default_format){
                 var point = $.extend({}, this);
                 var date = "";
                 if(getXType(primary) === "datetime"){
-                    point.x = Highcharts.dateFormat("%Y-%m-%d", Date.parse(point.x));
+                    point.x = Highcharts.dateFormat("%Y-%m-%d", point.x);
                 }
                 return Highcharts.format(default_format, {point: point, series: point.series, formatted_date: date});
             };
