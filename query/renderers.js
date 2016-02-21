@@ -281,7 +281,7 @@ define([
                 var point = $.extend({}, this);
                 var date = "";
                 if(getXType(primary) === "datetime"){
-                    point.x = Highcharts.dateFormat("%Y-%m-%d", point.x);
+                    point.x = Highcharts.dateFormat("%Y-%m-%d", Date.parse(point.x));
                 }
                 return Highcharts.format(default_format, {point: point, series: point.series, formatted_date: date});
             };
