@@ -116,7 +116,8 @@ define([
                 {
                     "setup_callback": function(tbl){
                         tbl.fnSetRowlink(ARTICLE_URL_FORMAT, "new");
-                    }
+                    },
+                    datatables_options: {iDisplayLength: 10,  aaSorting: []}
                 }
             )
         }
