@@ -31,11 +31,15 @@ define(["jquery", "moment"], function($, moment){
          *          of dates found), else null.
          */
         merge: function(ranges){
-            var start = Math.max.apply(undefined, ranges.map(function(x){return x.start_date}));
-            var end = Math.min.apply(undefined, ranges.map(function(x){return x.end_date}));
+            var start = Math.max.apply(undefined, ranges.map(function(x){
+                return x.start_date === null ? -Infinity : x.start_date;
+            }));
+            var end = Math.min.apply(undefined, ranges.map(function(x){
+                return x.end_date === null ? Infinity : x.end_date;
+            }));
 
             // If start ends up being bigger than we have found no intersection
-            if (end !== null && start > end){
+            if(start > end){
                 return null;
             }
 
