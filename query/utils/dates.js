@@ -31,26 +31,8 @@ define(["jquery", "moment"], function($, moment){
          *          of dates found), else null.
          */
         merge: function(ranges){
-            var start = null, end = null;
-
-            if (ranges.length === 0){
-                return { start_date: null, end_date: null };
-            }
-
-            // Sort based on start dates. Handles 'null' as null is smaller
-            // than a positive integer.
-            ranges.sort(function(a, b){
-                return (a.start_date < b.start_date) ? -1 : 1;
-            });
-
-            // Determine largest 'start_date' and smallest 'end_date'
-            $.each(ranges, function(_, range){
-                if (range.start_date > start) start = range.start_date;
-                if (end === null) end = range.end_date;
-                if (range.end_date !== null && range.end_date < end){
-                    end = range.end_date;
-                }
-            });
+            var start = Math.max.apply(undefined, ranges.map(function(x){return x.start_date}));
+            var end = Math.min.apply(undefined, ranges.map(function(x){return x.end_date}));
 
             // If start ends up being bigger than we have found no intersection
             if (end !== null && start > end){
