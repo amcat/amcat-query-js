@@ -112,7 +112,7 @@ define([
             var field_map = {
                 mediums: "mediumid", query: "q", article_ids: "ids",
                 start_date: "start_date", end_date: "end_date",
-                articlesets: "sets", sets: "sets"
+                articlesets: "sets", sets: "sets", on_date: "on_date"
             };
 
             var value_map = {
