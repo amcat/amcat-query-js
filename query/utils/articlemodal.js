@@ -132,10 +132,13 @@ define([
         function getSearchFilters(filters){
             var new_filters = {};
 
+            console.log(filters);
+
             var field_map = {
                 mediums: "mediumid", query: "q", article_ids: "ids",
                 start_date: "start_date", end_date: "end_date",
-                articlesets: "sets", sets: "sets", on_date: "on_date"
+                articlesets: "sets", sets: "sets", on_date: "on_date",
+                project: "project"
             };
 
             var value_map = {
