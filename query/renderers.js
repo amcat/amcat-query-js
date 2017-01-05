@@ -47,6 +47,13 @@ define([
         data["aggregations"] = false;
         data["offset"] = result.find(".articles > li").length;
 
+        console.log(data)
+        var articles = $(".articles > li", result)
+        if (articles.length < parseInt(data["size"])){
+            result.find(".loading").hide();
+            return;
+        }
+
         var url = API.getActionUrl(
             "summary", $("#query-screen").data("project"),
             data.codingjobs, data.articlesets);
@@ -207,6 +214,8 @@ define([
         },
         "text/html+summary": function(form_data, container, data){
             renderers["text/html"](form_data, container, data);
+
+            console.log(data)
             bottom(load_extra_summary);
         },
 
