@@ -1,45 +1,47 @@
+"use strict";
 define(["moment"], function(moment){
-    var renderers = {
-        "medium": function(medium){
-            return medium.id + " - " + medium.label;
-        },
-        "articleset": function(articleset){
-            return articleset.id + " - " + articleset.label;
-        },
-        "schemafield": function(schemafield){
-            return schemafield.id + " - " + schemafield.label;
-        },
-        "date": function(date){
-            return moment(date).format("DD-MM-YYYY");
-        },
-        "total": function(total){
-            return "Total";
-        },
-        "term": function(term){
-            return term.id;
-        },
-        "getRenderer": function(name, dflt){
-            var renderer = renderers[name];
-            if (renderer !== undefined){
-                return renderer;
-            }
 
-            if (name.indexOf("schemafield_") === 0){
-                return renderers.schemafield;
-            }
-
-            var intervals = ["day", "week", "month", "quarter", "year"];
-            if (intervals.indexOf(name) !== -1){
-                return renderers.date;
-            }
-
-            if (dflt){
-                return dflt;
-            }
-
-            throw "Could not find renderer '" + name + "'";
+    class Renderer{
+        constructor(pattern, renderfn){
+            this.pattern = pattern;
+            this.renderfn = renderfn;
         }
-    };
 
-    return renderers;
+        matches(name){
+            return name.match(this.pattern) !== null;
+        }
+    }
+
+    function renderDate(dateStr){
+        return moment(dateStr).format("DD-MM-YYYY");
+    }
+    function renderIdAndName(obj){
+        return obj.id + " - " + obj.label;
+    }
+
+
+    let renderers = [
+        new Renderer(/^articleset$/, renderIdAndName),
+        new Renderer(/^schemafield$/, renderIdAndName),
+        new Renderer(/^term$/, term => term.id),
+        new Renderer(/^total$/, _ => 'Total'),
+        new Renderer(/^date_(day|week|month|quarter|year)$/, renderDate),
+        new Renderer(/_str$/, str => str),
+        new Renderer(/_date$/, renderDate)
+    ]
+
+    function getRenderer(name, deflt){
+        for(let renderer of renderers){
+            if(!renderer.matches(name)){
+                continue;
+            }
+            return renderer.renderfn;
+        }
+        if(deflt){
+            return deflt;
+        }
+        throw "Could not find renderer '" + name + "'";
+    }
+
+    return {getRenderer: getRenderer};
 });
