@@ -18,15 +18,17 @@ define(["moment"], function(moment){
     function renderIdAndName(obj){
         return obj.id + " - " + obj.label;
     }
-
-
+    function renderAsString(obj){
+        return obj.toString();
+    }
+    
     let renderers = [
         new Renderer(/^articleset$/, renderIdAndName),
         new Renderer(/^schemafield$/, renderIdAndName),
         new Renderer(/^term$/, term => term.id),
         new Renderer(/^total$/, _ => 'Total'),
         new Renderer(/^date_(day|week|month|quarter|year)$/, renderDate),
-        new Renderer(/_str$/, str => str),
+        new Renderer(/_(str|int|num|url|id|tag)$/, renderAsString),
         new Renderer(/_date$/, renderDate)
     ]
 
