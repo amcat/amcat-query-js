@@ -1,9 +1,9 @@
 define([
-    "jquery", "renderjson", "query/utils/poll", "moment",
+    "jquery", "query/utils/poll", "moment",
     "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse"
-], function($, renderjson, Poll, moment, articles_popup, value_renderers, PNotify, API){
+], function($, Poll, moment, articles_popup, value_renderers, PNotify, API){
     "use strict";
     var renderers = {};
     API = API();
@@ -79,9 +79,7 @@ define([
 
     return $.extend(renderers, {
         "application/json+debug": function(form_data, container, data){
-            renderjson.set_icons('', '');
-            renderjson.set_show_to_level("all");
-            var text = $(renderjson(data)).text().replace(/{...}|\[ ... \]/g, "");
+            var text = JSON.stringify(data, null, "  ");
             var code = $("<code class='json'>").text(text);
             $(container).append($('<pre style="background-color:#f8f8ff;">').append(code));
         },
