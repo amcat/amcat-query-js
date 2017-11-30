@@ -26,19 +26,19 @@ define([
     var ARTICLE_URL_FORMAT = "../articles/{id}";
 
     var elastic_filters = {
-        year: function(form_data, value, filters){
+        date_year: function(form_data, value, filters){
             return elastic_filters.date(form_data, value, filters, "year");
         },
-        quarter: function(form_data, value, filters){
+        date_quarter: function(form_data, value, filters){
             return elastic_filters.date(form_data, value, filters, "quarter");
         },
-        month: function(form_data, value, filters){
+        date_month: function(form_data, value, filters){
             return elastic_filters.date(form_data, value, filters, "month");
         },
-        week: function(form_data, value, filters){
+        date_week: function(form_data, value, filters){
             return elastic_filters.date(form_data, value, filters, "week");
         },
-        day: function(form_data, value, filters){
+        date_day: function(form_data, value, filters){
             return elastic_filters.date(form_data, value, filters, "day");
         },
         date: function(form_data, value, filters, interval){

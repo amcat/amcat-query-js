@@ -21,8 +21,8 @@ define(["moment"], function(moment){
     function renderAsString(obj){
         return obj.toString();
     }
-    
-    let renderers = [
+
+    const renderers = [
         new Renderer(/^articleset$/, renderIdAndName),
         new Renderer(/^schemafield$/, renderIdAndName),
         new Renderer(/^term$/, term => term.id),
@@ -30,7 +30,7 @@ define(["moment"], function(moment){
         new Renderer(/^date_(day|week|month|quarter|year)$/, renderDate),
         new Renderer(/_(str|int|num|url|id|tag)$/, renderAsString),
         new Renderer(/_date$/, renderDate)
-    ]
+    ];
 
     function getRenderer(name, deflt){
         for(let renderer of renderers){

@@ -10,7 +10,7 @@ define([
 
     function getXType(axis){
         var intervals = ["year", "quarter", "month", "week", "day", "date"];
-        return (intervals.indexOf(axis) === -1) ? "category" : "datetime";
+        return (axis.startsWith("date_") === -1) ? "category" : "datetime";
     }
 
     function getYType(axis){
@@ -322,8 +322,19 @@ define([
                 plotOptions: {
                     series: {
                         events: {
-                            click: function(event){
-                                // Do things :)
+                            click: function (event) {
+                                let point = event.point;
+
+                                console.log(point);
+                                var filters = {};
+                                filters[primary] = row.data('value');
+
+                                if (secondary) {
+                                    filters[secondary] = col.data('value');
+                                }
+
+                                articles_popup().show(form_data, filters);
+
                             }
                         }
                     }
