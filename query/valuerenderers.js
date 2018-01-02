@@ -1,20 +1,28 @@
 "use strict";
 define(["moment"], function(moment){
 
-    class RenderFnFactory{
+    class ValueRenderFnFactory{
         getRenderFn(match){
             // not implemented
         }
     }
+    
+    class DateRenderFnFactory extends ValueRenderFnFactory {
+        getRenderFn(match){
+            let fmt = date_fmts[match[1]];
+            fmt = fmt === undefined ? "YYYY-MM-DD" : fmt;
+            return (str => moment(str).format(fmt));
+        }
+    }
 
-    class Renderer{
+    class ValueRenderer{
         constructor(pattern, renderfn){
             this.pattern = pattern;
             this.renderfn = renderfn;
         }
 
         getRenderFn(match){
-            if(this.renderfn instanceof RenderFnFactory){
+            if(this.renderfn instanceof ValueRenderFnFactory){
                 return this.renderfn.getRenderFn(match);
             }
             return this.renderfn;
@@ -33,13 +41,6 @@ define(["moment"], function(moment){
         "year": "YYYY",
     };
 
-    class DateRenderFnFactory extends RenderFnFactory {
-        getRenderFn(match){
-            let fmt = date_fmts[match[1]];
-            fmt = fmt === undefined ? "YYYY-MM-DD" : fmt;
-            return (str => moment(str).format(fmt));
-        }
-    }
 
     function renderIdAndName(obj){
         return obj.id + " - " + obj.label;
@@ -49,13 +50,13 @@ define(["moment"], function(moment){
     }
 
     const renderers = [
-        new Renderer(/^articleset$/, renderIdAndName),
-        new Renderer(/^schemafield$/, renderIdAndName),
-        new Renderer(/^term$/, term => term.id),
-        new Renderer(/^total$/, _ => 'Total'),
-        new Renderer(/^date_(day|week|month|quarter|year)$/, new DateRenderFnFactory()),
-        new Renderer(/_(str|int|num|url|id|tag)$/, renderAsString),
-        new Renderer(/_date$/, new DateRenderFnFactory())
+        new ValueRenderer(/^articleset$/, renderIdAndName),
+        new ValueRenderer(/^schemafield$/, renderIdAndName),
+        new ValueRenderer(/^term$/, term => term.id),
+        new ValueRenderer(/^total$/, _ => 'Total'),
+        new ValueRenderer(/^date_(day|week|month|quarter|year)$/, new DateRenderFnFactory()),
+        new ValueRenderer(/_(str|int|num|url|id|tag)$/, renderAsString),
+        new ValueRenderer(/_date$/, new DateRenderFnFactory())
     ];
 
     function getRenderer(name, deflt){
@@ -71,7 +72,7 @@ define(["moment"], function(moment){
         if(deflt){
             return deflt;
         }
-        throw "Could not find renderer '" + name + "'";
+        throw "Could not find value renderer '" + name + "'";
     }
 
     return {getRenderer: getRenderer};
