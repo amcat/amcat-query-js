@@ -47,8 +47,7 @@ define([
         data["aggregations"] = false;
         data["offset"] = result.find(".articles > li").length;
 
-        console.log(data)
-        var articles = $(".articles > li", result)
+        var articles = $(".articles > li", result);
         if (articles.length < parseInt(data["size"])) {
             result.find(".loading").hide();
             return;

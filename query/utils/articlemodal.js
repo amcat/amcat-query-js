@@ -87,7 +87,7 @@ define([
          */
         function articles_popup(form_data, filters){
             var data = $.extend({}, form_data);
-
+            console.log(filters);
             $.each(filters, function(type, value){
                 if (elastic_filters[type] !== undefined){
                     // Use elastic mapping function
@@ -112,7 +112,7 @@ define([
 
             amcat.datatables.create_rest_table(
                 $modal.find(".articlelist").html(""),
-                SEARCH_API_URL + "?" + $.param(getSearchFilters(data), true),
+                SEARCH_API_URL + "?" + $.param(getSearchFilters(data, filters), true),
                 {
                     "setup_callback": function(tbl){
                         tbl.fnSetRowlink(ARTICLE_URL_FORMAT, "new");
@@ -127,12 +127,12 @@ define([
          * example:
          *     mediums -> mediumid
          *     query -> q
-         * @param filters
+         * @param data
          */
-        function getSearchFilters(filters){
+        function getSearchFilters(data, filters){
             var new_filters = {};
 
-            console.log(filters);
+            console.log(data);
 
             var field_map = {
                 mediums: "mediumid", query: "q", article_ids: "ids",
@@ -148,17 +148,22 @@ define([
             };
 
             $.each(field_map, function(k, v){
-                if (filters[k] === null || filters[k] === undefined || filters[k] === ""){
+                if (data[k] === null || data[k] === undefined || data[k] === ""){
                     return;
                 }
 
-                new_filters[v] = filters[k];
+                new_filters[v] = data[k];
                 if (value_map[v] !== undefined){
                     new_filters[v] = value_map[v](new_filters[v]);
                 }
             });
 
-            return new_filters;
+            if(new_filters["q"] && filters["term"]){
+                new_filters["q"] = filters["term"];
+                delete filters["term"];
+            }
+
+            return $.extend({}, new_filters, filters);
         }
 
         return {
