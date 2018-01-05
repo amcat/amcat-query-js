@@ -63,8 +63,8 @@ define(["jquery", "moment"], function($, moment){
             end = start.clone().add(1, interval + "s");
 
             return {
-                start_date: start.unix() * 1000,
-                end_date: end.unix() * 1000
+                start_date: start.unix() * 1000 - 86400000,
+                end_date: end.unix() * 1000 - 86400000
             }
         },
 
