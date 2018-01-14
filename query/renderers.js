@@ -10,7 +10,21 @@ define([
 
     function getXType(axis) {
         var intervals = ["year", "quarter", "month", "week", "day", "date"];
-        return axis.startsWith("date_") ? "datetime" : "category";
+        const numericTypes = ["int", "num"];
+        if(axis.startsWith("date_")) {
+            return "datetime";
+        }
+        if(axis.indexOf("_") >= 0){
+            let nameparts = axis.split("_");
+            let typename = nameparts[1];
+            if(typename === "date") {
+                return "datetime";
+            }
+            if(numericTypes.indexOf(typename) >= 0){
+                return "numeric";
+            }
+        }
+        return "category";
     }
 
     function getYType(axis) {
@@ -174,7 +188,7 @@ define([
             const point = clickEvent.point;
             const filters = {};
 
-            filters[primary] = getXType(primary) === "datetime"?  point.x : point.name;
+            filters[primary] = getXType(primary) === "category"?  point.name : point.category;
             if(secondary) filters[secondary] = point.series.name;
             return filters;
         }
