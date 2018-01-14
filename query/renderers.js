@@ -102,7 +102,6 @@ define([
 
             if(filters === null) return;
 
-            console.log(filters);
             articles_popup().show(formData, filters);
         }
 
@@ -567,7 +566,6 @@ define([
         "text/html+summary": function (form_data, container, data) {
             renderers["text/html"](form_data, container, data);
 
-            console.log(data)
             bottom(load_extra_summary);
         },
 

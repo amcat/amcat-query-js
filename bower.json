@@ -1,6 +1,6 @@
 {
   "name": "amcat-query-js",
-  "version": "3.5.0-rc2",
+  "version": "3.5.0-rc3",
   "homepage": "https://github.com/amcat/amcat-query-js",
   "authors": [
     "AmCAT Development Team <amcat-dev@googlegroups.com>"
@@ -26,8 +26,5 @@
     "highcharts": "~6.0.4",
     "moment": "",
     "papaparse": "4.1.0",
-    "renderjson": "",
-    "jquery-cookie": "",
-    "jshashtable": "git://github.com/timdown/jshashtable.git"
   }
 }

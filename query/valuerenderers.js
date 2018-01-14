@@ -66,7 +66,6 @@ define(["moment"], function(moment){
                 continue;
             }
             const fn = renderer.getRenderFn(match);
-            console.log(fn);
             return fn;
         }
         if(deflt){
