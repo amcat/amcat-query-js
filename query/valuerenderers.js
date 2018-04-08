@@ -50,6 +50,7 @@ define(["moment"], function(moment){
     }
 
     const renderers = [
+        new ValueRenderer(/^codingschemafield/, field => field.label),
         new ValueRenderer(/^articleset$/, renderIdAndName),
         new ValueRenderer(/^schemafield$/, renderIdAndName),
         new ValueRenderer(/^term$/, term => term.id),
