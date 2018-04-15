@@ -9,7 +9,7 @@ define(["moment"], function(moment){
     
     class DateRenderFnFactory extends ValueRenderFnFactory {
         getRenderFn(match){
-            let fmt = date_fmts[match[1]];
+            let fmt = date_fmts[match[2]];
             fmt = fmt === undefined ? "YYYY-MM-DD" : fmt;
             return (str => moment(str).format(fmt));
         }
@@ -55,7 +55,7 @@ define(["moment"], function(moment){
         new ValueRenderer(/^schemafield$/, renderIdAndName),
         new ValueRenderer(/^term$/, term => term.label),
         new ValueRenderer(/^total$/, _ => 'Total'),
-        new ValueRenderer(/^date_(day|week|month|quarter|year)$/, new DateRenderFnFactory()),
+        new ValueRenderer(/^(date_)?(day|week|month|quarter|year)$/, new DateRenderFnFactory()),
         new ValueRenderer(/_(str|int|num|url|id|tag)$/, renderAsString),
         new ValueRenderer(/_date$/, new DateRenderFnFactory())
     ];
@@ -72,7 +72,7 @@ define(["moment"], function(moment){
         if(deflt){
             return deflt;
         }
-        throw "Could not find value renderer '" + name + "'";
+        throw new Error("Could not find value renderer '" + name + "'");
     }
 
     return {getRenderer: getRenderer};

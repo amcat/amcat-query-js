@@ -11,16 +11,16 @@ define([
     function getXType(axis) {
         var intervals = ["year", "quarter", "month", "week", "day", "date"];
         const numericTypes = ["int", "num"];
-        if(axis.startsWith("date_")) {
+        if (axis.startsWith("date_") || intervals.indexOf(axis) >= 0) {
             return "datetime";
         }
-        if(axis.indexOf("_") >= 0){
+        if (axis.indexOf("_") >= 0) {
             let nameparts = axis.split("_");
             let typename = nameparts[1];
-            if(typename === "date") {
+            if (typename === "date") {
                 return "datetime";
             }
-            if(numericTypes.indexOf(typename) >= 0){
+            if (numericTypes.indexOf(typename) >= 0) {
                 return "numeric";
             }
         }
@@ -102,14 +102,14 @@ define([
         /**
          * Gather the filters necessary to show the article popup. If null is returned, no popup is shown.
          */
-        getOnClickFilters(formData, clickEvent){
+        getOnClickFilters(formData, clickEvent) {
             return null;
         }
 
-        onClick(formData, clickEvent){
+        onClick(formData, clickEvent) {
             let filters = this.getOnClickFilters(formData, clickEvent);
 
-            if(filters === null) return;
+            if (filters === null) return;
 
             articles_popup().show(formData, filters);
         }
@@ -149,6 +149,8 @@ define([
 
         getChartOptions() {
             const tooltipOptions = this.getTooltipOptions();
+            const primary = this.formData.primary;
+            const secondary = this.formData.secondary;
             const chartOptions = {
                 title: "",
                 tooltip: tooltipOptions,
@@ -158,7 +160,15 @@ define([
                 },
                 xAxis: {
                     allowDecimals: false,
-                    type: getXType(this.formData.primary)
+                    type: getXType(this.formData.primary),
+                    labels: {
+                        formatter: function () {
+                            if(typeof(this.value) === "string") return this.value;
+                            const renderer = value_renderers.getRenderer(primary);
+                            let val = renderer(this.value);
+                            return val
+                        }
+                    }
                 },
                 yAxis: [
                     {
@@ -171,7 +181,7 @@ define([
                 series: [],
                 plotOptions: {
                     series: {
-                        events: {"click": (e) => this.onClick(this.formData, e) }
+                        events: {"click": (e) => this.onClick(this.formData, e)}
                     }
                 }
             };
@@ -179,14 +189,14 @@ define([
             return chartOptions;
         }
 
-        getOnClickFilters(formData, clickEvent){
+        getOnClickFilters(formData, clickEvent) {
             const primary = formData.primary;
             const secondary = formData.secondary;
             const point = clickEvent.point;
             const filters = {};
 
-            filters[primary] = getXType(primary) === "category"?  point.name : point.category;
-            if(secondary) filters[secondary] = point.series.name;
+            filters[primary] = getXType(primary) === "category" ? point.name : point.category;
+            if (secondary) filters[secondary] = point.series.name;
             return filters;
         }
 
@@ -200,7 +210,11 @@ define([
 
             if (getXType(primary) === "datetime") {
                 data.forEach(function (point) {
-                    point[0][0] = Date.parse(point[0][0]);
+                    let p = point[0][0];
+                    if(p.match(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$/)){ // Add UTC timezone to prevent off-by-one errors
+                        p += "+0000";
+                    }
+                    point[0][0] = Date.parse(p);
                 });
             }
 
@@ -258,7 +272,7 @@ define([
                 chartOptions.series.push({
                     name: $("#id_value2 [value='{v}']".format({v: value2})).text(),
                     yAxis: 1,
-                    type: this.secondSeriesType === null ? "scatter": this.secondSeriesType,
+                    type: this.secondSeriesType === null ? "scatter" : this.secondSeriesType,
                     data: $(data).map(function (i, point) {
                         if (point[1][1] === null) return null;
                         return [[point[0][0].label || point[0][0], point[1][1]]];
@@ -279,20 +293,20 @@ define([
         }
     }
 
-    class BarChartRenderer extends ChartRenderer{
-        constructor(){
+    class BarChartRenderer extends ChartRenderer {
+        constructor() {
             super("column");
         }
     }
 
-    class LineChartRenderer extends ChartRenderer{
-        constructor(){
+    class LineChartRenderer extends ChartRenderer {
+        constructor() {
             super("line", {secondSeriesType: "line"});
         }
     }
 
-    class ScatterChartRenderer extends ChartRenderer{
-        constructor(){
+    class ScatterChartRenderer extends ChartRenderer {
+        constructor() {
             super("scatter");
         }
     }
@@ -314,7 +328,7 @@ define([
      * where needed.
      */
     class AggregationTableRenderer extends Renderer {
-        render (form_data, container, matrix) {
+        render(form_data, container, matrix) {
             const thead = $("<thead>").append($("<th>"));
             const tbody = $("<tbody>");
             const table = $("<table>").addClass("aggregation dataTable table table-striped");
@@ -399,7 +413,7 @@ define([
             table.click(e => this.onClick(form_data, e));
         }
 
-        getOnClickFilters(formData, clickEvent){
+        getOnClickFilters(formData, clickEvent) {
             const primary = formData.primary;
             const secondary = formData.secondary;
             if (window.location.hash.slice(1) !== "aggregation") {
@@ -434,7 +448,7 @@ define([
     }
 
     class TableRenderer {
-         render (form_data, container, table_data) {
+        render(form_data, container, table_data) {
             var thead = $("<thead>").append(
                 $.map(table_data[0], function (label) {
                     return $("<th>").text(label);
@@ -465,8 +479,8 @@ define([
         }
     }
 
-    class ClustermapTableRenderer extends CSVTableRenderer{
-        render (form_data, container, data) {
+    class ClustermapTableRenderer extends CSVTableRenderer {
+        render(form_data, container, data) {
             var table = super.render(form_data, container, data.csv);
             table.addClass("table-hover");
 
