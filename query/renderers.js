@@ -90,11 +90,6 @@ define([
 
     }
 
-    class Point {
-        constructor(filters){
-            this.filters = filters;
-        }
-    }
 
     class Renderer {
         constructor() {
@@ -131,8 +126,10 @@ define([
     }
 
     class ChartRenderer extends Renderer {
-        constructor(type) {
+        constructor(type, options) {
             super();
+            options = options === undefined ? {} : options;
+            this.secondSeriesType = options.hasOwnProperty('secondSeriesType') ? options.secondSeriesType : null;
             this.type = (type === undefined) ? "column" : type;
         }
 
@@ -261,7 +258,7 @@ define([
                 chartOptions.series.push({
                     name: $("#id_value2 [value='{v}']".format({v: value2})).text(),
                     yAxis: 1,
-                    type: "scatter",
+                    type: this.secondSeriesType === null ? "scatter": this.secondSeriesType,
                     data: $(data).map(function (i, point) {
                         if (point[1][1] === null) return null;
                         return [[point[0][0].label || point[0][0], point[1][1]]];
@@ -290,7 +287,7 @@ define([
 
     class LineChartRenderer extends ChartRenderer{
         constructor(){
-            super("line");
+            super("line", {secondSeriesType: "line"});
         }
     }
 
