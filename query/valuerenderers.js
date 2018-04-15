@@ -61,7 +61,6 @@ define(["moment"], function(moment){
     ];
 
     function getRenderer(name, deflt){
-        console.log(`Getting renderer with options: {name: '${name}', deflt: ${deflt}}`);
         for(let renderer of renderers){
             let match = renderer.match(name);
             if(match === null){
