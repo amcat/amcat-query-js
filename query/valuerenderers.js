@@ -53,7 +53,7 @@ define(["moment"], function(moment){
         new ValueRenderer(/^codingschemafield/, renderIdAndName),
         new ValueRenderer(/^articleset$/, renderIdAndName),
         new ValueRenderer(/^schemafield$/, renderIdAndName),
-        new ValueRenderer(/^term$/, term => term.id),
+        new ValueRenderer(/^term$/, term => term.label),
         new ValueRenderer(/^total$/, _ => 'Total'),
         new ValueRenderer(/^date_(day|week|month|quarter|year)$/, new DateRenderFnFactory()),
         new ValueRenderer(/_(str|int|num|url|id|tag)$/, renderAsString),
@@ -61,6 +61,7 @@ define(["moment"], function(moment){
     ];
 
     function getRenderer(name, deflt){
+        console.log(`Getting renderer with options: {name: '${name}', deflt: ${deflt}}`);
         for(let renderer of renderers){
             let match = renderer.match(name);
             if(match === null){
