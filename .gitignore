@@ -58,3 +58,7 @@ target/
 
 # Bower components
 bower_components/
+
+# IDEs, editors, etc
+.idea/
+*.swp

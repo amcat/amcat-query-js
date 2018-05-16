@@ -1,39 +1,64 @@
 define([
     "jquery", "query/utils/poll", "moment",
     "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
+    "query/utils/i18n",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse"
-], function ($, Poll, moment, articles_popup, value_renderers, PNotify, API) {
+], function ($, Poll, moment, articles_popup, value_renderers, PNotify, API, i18n) {
     "use strict";
     var renderers = {};
     API = API();
+
+    const _ = i18n.gettext;
+
+    moment.locale(i18n.languageCode);
+
+    const highchartsLang = Object.assign({},
+        {
+            months: moment.months(),
+            shortMonths: moment.monthsShort(),
+            weekdays: moment.weekdays()
+        },
+        i18n.highchartsLang
+    );
+
+
+    Highcharts.setOptions({
+        lang: highchartsLang,
+    });
+
+    const AxisType = {
+        category: "category",
+        numeric: "numeric",
+        datetime: "datetime"
+    };
 
     function getXType(axis) {
         var intervals = ["year", "quarter", "month", "week", "day", "date"];
         const numericTypes = ["int", "num"];
         if (axis.startsWith("date_") || intervals.indexOf(axis) >= 0) {
-            return "datetime";
+            return AxisType.datetime;
         }
         if (axis.indexOf("_") >= 0) {
             let nameparts = axis.split("_");
             let typename = nameparts[1];
             if (typename === "date") {
-                return "datetime";
+                return AxisType.datetime;
             }
             if (numericTypes.indexOf(typename) >= 0) {
-                return "numeric";
+                return AxisType.numeric;
             }
         }
-        return "category";
+        return AxisType.category;
     }
 
-    function getYType(axis) {
-        if (axis === "date" || axis === "medium" || axis === "term" || axis === "set" || axis === "total" || axis === "count") {
-            return "Number of articles";
+    function getYLabel(axis) {
+        if (axis === "date" || axis === "medium" || axis === "term" || axis === "set" || axis === "total" || axis.startsWith("count")) {
+            return _("Number of articles");
         }
 
         if (axis.startsWith("avg(") && axis.endsWith(")")) {
-            return "Average";
+            return _("Average");
         }
 
         return axis;
@@ -174,7 +199,7 @@ define([
                     {
                         allowDecimals: false,
                         title: {
-                            "text": getYType(this.formData.value1)
+                            "text": getYLabel(this.formData.value1)
                         }
                     }
                 ],
@@ -195,7 +220,7 @@ define([
             const point = clickEvent.point;
             const filters = {};
 
-            filters[primary] = getXType(primary) === "category" ? point.name : point.category;
+            filters[primary] = getXType(primary) === AxisType.category ? point.name : point.category;
             if (secondary) filters[secondary] = point.series.name;
             return filters;
         }
@@ -208,7 +233,7 @@ define([
             const value2 = formData.value2;
 
 
-            if (getXType(primary) === "datetime") {
+            if (getXType(primary) === AxisType.datetime) {
                 data.forEach(function (point) {
                     let p = point[0][0];
                     if(p.match(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$/)){ // Add UTC timezone to prevent off-by-one errors
@@ -281,7 +306,7 @@ define([
 
                 // Add second y-axis
                 chartOptions.yAxis.push({
-                    title: {"text": getYType(value2)},
+                    title: {"text": getYLabel(value2)},
                     opposite: true
                 });
             }
