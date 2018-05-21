@@ -265,7 +265,7 @@ define([
 
                 data.forEach(function (point) {
                     sec_val = point[0][1];
-                    series[sec_val.id || sec_val] = {
+                    series[sec_val.id || sec_val.label || sec_val] = {
                         name: sec_val.label || sec_val,
                         data: []
                     };
@@ -275,12 +275,10 @@ define([
                     prim_val = point[0][0];
                     sec_val = point[0][1];
                     val = point[1][0];
-                    series[sec_val.id || sec_val].data.push([prim_val.label || prim_val, val]);
+                    series[sec_val.id || sec_val.label || sec_val].data.push([prim_val.label || prim_val, val]);
                 });
 
-                chartOptions.series = $.map(series, function (val) {
-                    return val;
-                });
+                chartOptions.series = Array.from(Object.values(series));
             } else {
                 // 1 aggr + 2 value
 
@@ -312,9 +310,8 @@ define([
             }
 
             container.append($("<div class='ht'></div>"));
-            container.find(".ht").highcharts(chartOptions);
 
-
+            return container.find(".ht").highcharts(chartOptions).highcharts();
         }
     }
 
