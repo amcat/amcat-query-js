@@ -8,7 +8,7 @@ define(["moment", momentLocale], function(moment){
     const i18n = {};
 
 
-    if(!django.jsi18n_initialized){
+    if(typeof django === "undefined" || !django.jsi18n_initialized){
         function noop(x) {
             return x;
         }
