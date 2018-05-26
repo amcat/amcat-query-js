@@ -191,7 +191,7 @@ define([
                             if(typeof(this.value) === "string") return this.value;
                             const renderer = value_renderers.getRenderer(primary);
                             let val = renderer(this.value);
-                            return val
+                            return `${val}`;
                         }
                     }
                 },

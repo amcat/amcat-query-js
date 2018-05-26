@@ -87,7 +87,6 @@ define([
          */
         function articles_popup(form_data, filters){
             var data = $.extend({}, form_data);
-            console.log(filters);
             $.each(filters, function(type, value){
                 if (elastic_filters[type] !== undefined){
                     // Use elastic mapping function
@@ -131,9 +130,6 @@ define([
          */
         function getSearchFilters(data, filters){
             var new_filters = {};
-
-            console.log(data);
-
             var field_map = {
                 mediums: "mediumid", query: "q", article_ids: "ids",
                 start_date: "start_date", end_date: "end_date",

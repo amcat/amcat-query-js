@@ -183,7 +183,6 @@ _Poll = (function($, uuid, opts){
  * >>> });
  */
 define(["jquery"], function($){
-    console.log($)
     return function(uuid, opts){
         return _Poll.call({}, $, uuid, opts === undefined ? {} : opts);
     }
