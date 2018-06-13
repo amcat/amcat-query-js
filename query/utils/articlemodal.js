@@ -21,9 +21,11 @@ define([
     "jquery", "query/utils/dates", "query/valuerenderers", "bootstrap",
     "amcat/amcat.datatables"],
     function($, QueryDates, value_renderers){
-    var defaults = { "modal": "#articlelist-dialog" };
-    var SEARCH_API_URL = "/api/v4/search";
-    var ARTICLE_URL_FORMAT = "../articles/{id}";
+    var defaults = {
+        "modal": "#articlelist-dialog",
+        "search_api_url": "/api/v4/search",
+        "article_url_format": "../articles/{id}"
+    };
 
     var elastic_filters = {
         date_year: function(form_data, value, filters){
@@ -111,10 +113,10 @@ define([
 
             amcat.datatables.create_rest_table(
                 $modal.find(".articlelist").html(""),
-                SEARCH_API_URL + "?" + $.param(getSearchFilters(data, filters), true),
+                options.search_api_url + "?" + $.param(getSearchFilters(data, filters), true),
                 {
                     "setup_callback": function(tbl){
-                        tbl.fnSetRowlink(ARTICLE_URL_FORMAT, "new");
+                        tbl.fnSetRowlink(options.article_url_format, "new");
                     },
                     datatables_options: {iDisplayLength: 10,  aaSorting: []}
                 }
