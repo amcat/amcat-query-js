@@ -1,7 +1,12 @@
+const momentLocales = {
+    'nl': 'nl'
+};
+
 let momentLocale = null;
 
-if(window.languageCode) {
-    momentLocale = `moment-locale/${window.languageCode}`;
+
+if(window.languageCode && momentLocales.hasOwnProperty(window.languageCode) ) {
+    momentLocale = `moment-locale/${momentLocales[window.languageCode]}`;
 }
 
 define(["moment", momentLocale], function(moment){
