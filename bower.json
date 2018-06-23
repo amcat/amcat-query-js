@@ -21,7 +21,7 @@
   "dependencies": {
     "jquery": "~2.1.1",
     "bootstrap": "3.3.7",
-    "datatables": "http://hmbastiaan.nl/martijn/downloads/DataTables-1.10.7.zip",
+    "datatables": "https://github.com/amcat/amcat-datatables.git#1.10.7",
     "jquery-csv": "",
     "highcharts": "~6.0.4",
     "moment": "",

@@ -160,7 +160,7 @@ define([
 
         getTooltipOptions() {
             const primary = this.formData.primary;
-            const tooltipOptions = {shared: true};
+            const tooltipOptions = {shared: true, dateTimeLabelFormats: i18n.dateTimeLabelFormats};
             tooltipOptions.pointFormatter = function (default_format) {
                 let point = $.extend({}, this);
                 let date = "";

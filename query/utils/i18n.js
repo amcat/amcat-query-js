@@ -56,6 +56,10 @@ define(["moment", momentLocale], function(moment){
         "contextButtonTitle": _("Chart context menu")
     };
 
+    i18n.dateTimeLabelFormats = {
+        week: _("Week from %A, %b %e, %Y"),
+    };
+
     return i18n ;
 });
 
