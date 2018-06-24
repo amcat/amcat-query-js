@@ -28,6 +28,7 @@ define(["moment", momentLocale], function(moment){
         i18n.languageCode = "en";
         i18n.highchartsLang = {};
 
+        i18n.dateTimeLabelFormats = {};
         return i18n;
     }
 
