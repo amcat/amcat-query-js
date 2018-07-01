@@ -52,7 +52,31 @@ define([
         return AxisType.category;
     }
 
-    function getYLabel(axis) {
+    const labelReplacements = {
+        count: [/Article count|Number of articles/, () => _("Number of articles")],
+        avg: [/^Average (.*)$/, (fulltext, label) => Highcharts.format(_("Average of {label}"), {label})]
+    };
+
+    function getOptionLabel(optionVal, idx){
+        const funcMatch = optionVal.match(/(\w+)\((\w+)\)/);
+        if(funcMatch !== null){
+            const [text, func, param] = funcMatch;
+            const option = $(`#id_value${idx+1} [value=${CSS.escape(text)}]`);
+            const label = option.text();
+            if(label.length > 0){
+                console.log(label, label.match(labelReplacements[func][0]));
+                return label.replace(...labelReplacements[func]);
+            }
+        }
+        return null;
+    }
+
+    function getYLabel(axis, idx) {
+        const optionLabel = getOptionLabel(axis, idx);
+        if(optionLabel != null){
+            return optionLabel;
+        }
+
         if (axis === "date" || axis === "medium" || axis === "term" || axis === "set" || axis === "total" || axis.startsWith("count")) {
             return _("Number of articles");
         }
@@ -199,7 +223,7 @@ define([
                     {
                         allowDecimals: false,
                         title: {
-                            "text": getYLabel(this.formData.value1)
+                            "text": getYLabel(this.formData.value1, 0)
                         }
                     }
                 ],
@@ -281,10 +305,20 @@ define([
                 chartOptions.series = Array.from(Object.values(series));
             } else {
                 // 1 aggr + 2 value
-
+                function getLabel(val) {
+                    const option = $("#id_value1 [value='{val}']".format({val})).text();
+                    let match = val.match(/^(avg|count)\(/);
+                    if(match === null){
+                        return option;
+                    }
+                    else {
+                        const func = match[1];
+                        return option.replace(...labelReplacements[func]);
+                    }
+                }
                 // Add bars (first value)
                 chartOptions.series.push({
-                    name: $("#id_value1 [value='{v}']".format({v: value1})).text(),
+                    name: getOptionLabel(value1, 0),
                     data: $(data).map(function (i, point) {
                         if (point[1][0] === null) return null;
                         return [[point[0][0].label || point[0][0], point[1][0]]];
@@ -293,7 +327,7 @@ define([
 
                 // Add line (second value)
                 chartOptions.series.push({
-                    name: $("#id_value2 [value='{v}']".format({v: value2})).text(),
+                    name: getOptionLabel(value2, 1),
                     yAxis: 1,
                     type: this.secondSeriesType === null ? "scatter" : this.secondSeriesType,
                     data: $(data).map(function (i, point) {
@@ -304,7 +338,7 @@ define([
 
                 // Add second y-axis
                 chartOptions.yAxis.push({
-                    title: {"text": getYLabel(value2)},
+                    title: {"text": getYLabel(value2, 1)},
                     opposite: true
                 });
             }
