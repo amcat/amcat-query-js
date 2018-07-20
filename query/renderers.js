@@ -64,7 +64,6 @@ define([
             const option = $(`#id_value${idx+1} [value=${CSS.escape(text)}]`);
             const label = option.text();
             if(label.length > 0){
-                console.log(label, label.match(labelReplacements[func][0]));
                 return label.replace(...labelReplacements[func]);
             }
         }
@@ -285,7 +284,6 @@ define([
             else{
                 pointData.x = point[0][0];
             }
-            pointData.category = point[0];
             pointData.pointFilters = {
                 ...this.getFilter(primary, point[0][0]),
                 ...this.getFilter(secondary, point[0][1])
@@ -373,7 +371,6 @@ define([
                     opposite: true
                 });
             }
-            console.log("Series 0: ", chartOptions.series[0]);
             container.append($("<div class='ht'></div>"));
 
             return container.find(".ht").highcharts(chartOptions).highcharts();
