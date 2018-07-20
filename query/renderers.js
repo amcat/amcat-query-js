@@ -139,6 +139,24 @@ define([
 
     }
 
+    function intersectFilters(...filterSets) {
+        let filters = {};
+        for (let filterSet of filterSets) {
+            for (let [k, vs] of Object.entries(filterSet)) {
+                if (!(vs instanceof Array)) {
+                    vs = [vs];
+                }
+                if (k in filters) {
+                    filters[k] = filters[k].filter(v => v in vs);
+                }
+                else {
+                    filters[k] = vs;
+                }
+            }
+        }
+        return filters;
+    }
+
 
     class Renderer {
         constructor() {
@@ -152,7 +170,10 @@ define([
          * Gather the filters necessary to show the article popup. If null is returned, no popup is shown.
          */
         getOnClickFilters(formData, clickEvent) {
-            return null;
+            if(formData.filters.startsWith('{')) {
+                return JSON.parse(formData.filters);
+            }
+            return {};
         }
 
         onClick(formData, clickEvent) {
@@ -239,14 +260,37 @@ define([
         }
 
         getOnClickFilters(formData, clickEvent) {
-            const primary = formData.primary;
-            const secondary = formData.secondary;
-            const point = clickEvent.point;
-            const filters = {};
+            return intersectFilters(super.getOnClickFilters(formData, clickEvent), clickEvent.point.pointFilters);
+        }
 
-            filters[primary] = getXType(primary) === AxisType.category ? point.name : point.category;
-            if (secondary) filters[secondary] = point.series.name;
-            return filters;
+        getFilter(axis, point){
+            if(!point){
+                return null;
+            }
+            let type = getXType(axis);
+            if(axis === "term"){
+                return {"q": point.query};
+            }
+            return {[axis]: point.label ? point.label : point};
+        }
+
+        getPointData(point, series){
+            const primary = this.formData.primary;
+            const secondary = this.formData.secondary;
+            series = series === undefined ? 0 : series;
+            const pointData = {y: point[1][series]};
+            if(point[0][0].label) {
+                pointData.name = point[0][0].label;
+            }
+            else{
+                pointData.x = point[0][0];
+            }
+            pointData.category = point[0];
+            pointData.pointFilters = {
+                ...this.getFilter(primary, point[0][0]),
+                ...this.getFilter(secondary, point[0][1])
+            };
+            return pointData;
         }
 
         render(formData, container, data) {
@@ -269,14 +313,11 @@ define([
 
             const chartOptions = this.getChartOptions();
 
-
             if (primary && !secondary && value1 && !value2) {
                 // 1 aggr + 1 value
                 chartOptions.series.push({
                     name: primary,
-                    data: $(data).map(function (i, point) {
-                        return [[point[0][0].label || point[0][0], point[1][0]]];
-                    })
+                    data: $(data).map((i, point) => this.getPointData(point))
                 });
 
                 chartOptions.legend = {
@@ -295,33 +336,23 @@ define([
                     };
                 });
 
-                data.forEach(function (point) {
+                data.forEach((point) => {
                     prim_val = point[0][0];
                     sec_val = point[0][1];
                     val = point[1][0];
-                    series[sec_val.id || sec_val.label || sec_val].data.push([prim_val.label || prim_val, val]);
+                    let pointData = this.getPointData(point);
+                    series[sec_val.id || sec_val.label || sec_val].data.push(pointData);
                 });
 
                 chartOptions.series = Array.from(Object.values(series));
             } else {
-                // 1 aggr + 2 value
-                function getLabel(val) {
-                    const option = $("#id_value1 [value='{val}']".format({val})).text();
-                    let match = val.match(/^(avg|count)\(/);
-                    if(match === null){
-                        return option;
-                    }
-                    else {
-                        const func = match[1];
-                        return option.replace(...labelReplacements[func]);
-                    }
-                }
+
                 // Add bars (first value)
                 chartOptions.series.push({
                     name: getOptionLabel(value1, 0),
-                    data: $(data).map(function (i, point) {
+                    data: $(data).map((i, point) => {
                         if (point[1][0] === null) return null;
-                        return [[point[0][0].label || point[0][0], point[1][0]]];
+                        return [this.getPointData(point, 0)];
                     })
                 });
 
@@ -330,9 +361,9 @@ define([
                     name: getOptionLabel(value2, 1),
                     yAxis: 1,
                     type: this.secondSeriesType === null ? "scatter" : this.secondSeriesType,
-                    data: $(data).map(function (i, point) {
+                    data: $(data).map((i, point) => {
                         if (point[1][1] === null) return null;
-                        return [[point[0][0].label || point[0][0], point[1][1]]];
+                        return [this.getPointData(point, 1)];
                     })
                 });
 
@@ -342,7 +373,7 @@ define([
                     opposite: true
                 });
             }
-
+            console.log("Series 0: ", chartOptions.series[0]);
             container.append($("<div class='ht'></div>"));
 
             return container.find(".ht").highcharts(chartOptions).highcharts();
@@ -470,6 +501,7 @@ define([
         }
 
         getOnClickFilters(formData, clickEvent) {
+            const formFilters = super.getOnClickFilters(formData, clickEvent);
             const primary = formData.primary;
             const secondary = formData.secondary;
             if (window.location.hash.slice(1) !== "aggregation") {
@@ -491,15 +523,17 @@ define([
                 var row = td.parent().children().eq(0);
 
                 var filters = {};
-                filters[primary] = row.data('value');
+                let data = row.data('value');
+                filters[primary] = data.query || data.label || data;
 
                 if (secondary) {
-                    filters[secondary] = col.data('value');
+                    data = col.data('value');
+                    filters[secondary] =  data.query || data.label || data;
                 }
 
-                return filters;
+                return intersectFilters(filters, formFilters);
             }
-            return null;
+            return formFilters;
         }
     }
 
