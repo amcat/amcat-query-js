@@ -23,7 +23,7 @@
     "bootstrap": "3.3.7",
     "datatables": "https://github.com/amcat/amcat-datatables.git#1.10.7",
     "jquery-csv": "",
-    "highcharts": "~6.1.1",
+    "highcharts": "6.1.2 - 6.1",
     "moment": "",
     "papaparse": "4.1.0"
   }

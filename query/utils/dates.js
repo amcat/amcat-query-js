@@ -31,12 +31,8 @@ define(["jquery", "moment"], function($, moment){
          *          of dates found), else null.
          */
         merge: function(ranges){
-            var start = Math.max.apply(undefined, ranges.map(function(x){
-                return x.start_date === null ? -Infinity : x.start_date;
-            }));
-            var end = Math.min.apply(undefined, ranges.map(function(x){
-                return x.end_date === null ? Infinity : x.end_date;
-            }));
+            var start = Math.max(...ranges.map(x => x.start_date == null ? -Infinity : x.start_date));
+            var end = Math.min(...ranges.map(x => x.end_date == null ? Infinity : x.end_date));
 
             // If start ends up being bigger than we have found no intersection
             if(start > end){
@@ -61,7 +57,9 @@ define(["jquery", "moment"], function($, moment){
 
             start = moment(start_date);
             end = start.clone().add(1, interval + "s");
-
+            if(!start.isValid()){
+                throw new Error("Invalid date");
+            }
             return {
                 start_date: start.unix() * 1000 - 86400000,
                 end_date: end.unix() * 1000 - 86400000

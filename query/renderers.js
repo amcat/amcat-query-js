@@ -4,7 +4,7 @@ define([
     "query/utils/i18n",
     "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
     "papaparse"
-], function ($, Poll, moment, articles_popup, value_renderers, PNotify, API, i18n) {
+], function ($, Poll, moment, articles_popup, value_renderers, PNotify, API, i18n, Highcharts) {
     "use strict";
     var renderers = {};
     API = API();
