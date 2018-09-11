@@ -33,6 +33,11 @@ define(['query/utils/dates'], (QueryDates) => {
         },
         date: function (form_data, value, filters, interval) {
             let ranges;
+
+            if(value instanceof Array && value.length > 0){
+                value = value[0]
+            }
+
             if (form_data.hasOwnProperty('on_date')
                 || form_data.hasOwnProperty('end_date')
                 || form_data.hasOwnProperty('start_date')) {

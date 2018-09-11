@@ -146,7 +146,7 @@ define([
                     vs = [vs];
                 }
                 if (k in filters) {
-                    filters[k] = filters[k].filter(v => v in vs);
+                    filters[k] = filters[k].filter(v => vs.indexOf(v) >= 0);
                 }
                 else {
                     filters[k] = vs;
@@ -169,10 +169,17 @@ define([
          * Gather the filters necessary to show the article popup. If null is returned, no popup is shown.
          */
         getOnClickFilters(formData, clickEvent) {
-            if(formData.filters.startsWith('{')) {
-                return JSON.parse(formData.filters);
+            const filters = [];
+
+            if(formData.articlesets.length > 0){
+                filters.push({sets: formData.articlesets});
             }
-            return {};
+            
+            if(formData.filters.startsWith('{')) {
+                filters.push(JSON.parse(formData.filters));
+            }
+
+            return intersectFilters(...filters);
         }
 
         onClick(formData, clickEvent) {
@@ -259,6 +266,13 @@ define([
         }
 
         getOnClickFilters(formData, clickEvent) {
+            if (formData.codingjobs.length > 0) {
+                new PNotify({
+                    "type": "info",
+                    "text": "Viewing articles / codings not yet supported in coding aggregations."
+                });
+                return null;
+            }
             return intersectFilters(super.getOnClickFilters(formData, clickEvent), clickEvent.point.pointFilters);
         }
 
@@ -270,7 +284,10 @@ define([
             if(axis === "term"){
                 return {"q": point.query};
             }
-            return {[axis]: point.label ? point.label : point};
+            if(axis === "articleset"){
+                axis = "sets";
+            }
+            return {[axis]: point.id ? point.id : point.label ? point.label : point};
         }
 
         getPointData(point, series){

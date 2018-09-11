@@ -53,6 +53,9 @@ define(["jquery", "moment"], function($, moment){
          *         both milliseconds.
          */
         get_range: function(start_date, interval){
+            if(start_date.length === 1){
+                throw Error("Expected int, got array")
+            }
             var start, end;
 
             start = moment(start_date);
