@@ -266,12 +266,8 @@ define([
         }
 
         getOnClickFilters(formData, clickEvent) {
-            if (formData.codingjobs.length > 0) {
-                new PNotify({
-                    "type": "info",
-                    "text": "Viewing articles / codings not yet supported in coding aggregations."
-                });
-                return null;
+            if(clickEvent.point.ids instanceof Array && clickEvent.point.ids.length > 0){
+                return {"ids": clickEvent.point.ids.join(",")};
             }
             return intersectFilters(super.getOnClickFilters(formData, clickEvent), clickEvent.point.pointFilters);
         }
@@ -295,6 +291,10 @@ define([
             const secondary = this.formData.secondary;
             series = series === undefined ? 0 : series;
             const pointData = {y: point[1][series]};
+            if(pointData.y.length == 2){
+                pointData.ids = pointData.y[1];
+                pointData.y = pointData.y[0];
+            }
             if(point[0][0].label) {
                 pointData.name = point[0][0].label;
             }
@@ -314,7 +314,6 @@ define([
             const secondary = formData.secondary;
             const value1 = formData.value1;
             const value2 = formData.value2;
-
 
             if (getXType(primary) === AxisType.datetime) {
                 data.forEach(function (point) {
@@ -497,9 +496,14 @@ define([
                 $.each(rowdata, function (colnr, values) {
                     $.each(values, function (valuenr, value) {
                         // Check for float / integer. And wtf javascript, why no float type?!
+                        let ids = null;
+                        if(value instanceof Array) {
+                            ids = value[1];
+                            value = value[0];
+                        }
                         if (value === null) return true;
-                        value = (value % 1 === 0) ? value : value.toFixed(2);
-                        row_element.find("td").eq(colnr * numberOfValues + valuenr).text(value);
+                        value = ((value | 0) === value) ? value : value.toFixed(2);
+                        row_element.find("td").eq(colnr * numberOfValues + valuenr).text(value).attr('data-ids', ids);
                     });
                 });
 
@@ -518,15 +522,13 @@ define([
             const formFilters = super.getOnClickFilters(formData, clickEvent);
             const primary = formData.primary;
             const secondary = formData.secondary;
+            var td = $(clickEvent.target);
+
             if (window.location.hash.slice(1) !== "aggregation") {
-                new PNotify({
-                    "type": "info",
-                    "text": "Viewing articles / codings not yet supported in coding aggregations."
-                });
-                return null;
+                const ids = td.data('ids');
+                return {"ids": ids};
             }
 
-            var td = $(clickEvent.target);
             if (td.prop("tagName") === "TD") {
                 // Do not process empty cells
                 if (!td.text()) {
