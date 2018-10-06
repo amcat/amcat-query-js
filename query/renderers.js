@@ -218,6 +218,12 @@ define([
                 if (getXType(primary) === "datetime") {
                     point.x = Highcharts.dateFormat("%Y-%m-%d", point.x);
                 }
+
+                const decimals = point.series.options.tooltip.valueDecimals;
+                if (typeof point.y === "number" && decimals != null){
+                    point.y = point.y.toFixed(decimals);
+                }
+
                 return Highcharts.format(default_format, {point: point, series: point.series, formatted_date: date});
             };
             return tooltipOptions;
