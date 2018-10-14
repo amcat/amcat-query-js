@@ -2,10 +2,15 @@ define([
     "jquery", "query/utils/poll", "moment",
     "query/utils/articlemodal", "query/valuerenderers", "pnotify", "query/api",
     "query/utils/i18n",
-    "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting",
+    "highcharts.core", "highcharts.data", "highcharts.heatmap", "highcharts.exporting", "highcharts.drilldown",
     "papaparse"
-], function ($, Poll, moment, articles_popup, value_renderers, PNotify, API, i18n, Highcharts) {
+], function ($, Poll, moment, articles_popup, value_renderers, PNotify, API, i18n, Highcharts, Highcharts_data, Highcharts_heatmap, Highcharts_exporting, Highcharts_drilldown) {
     "use strict";
+    Highcharts_drilldown(Highcharts);
+    Highcharts_exporting(Highcharts);
+    Highcharts_heatmap(Highcharts);
+    Highcharts_data(Highcharts);
+
     var renderers = {};
     API = API();
 
@@ -188,9 +193,17 @@ define([
             if (filters === null) return;
 
             articles_popup().show(formData, filters);
+
+
+            const primary = formData.primary;
+            const secondary = formData.secondary;
+            const value1 = formData.value1;
+            const value2 = formData.value2;
+
+            if (primary && secondary && value1 && value2){
+                throw "HACK: prevent onClick from activating drilldown."
+            }
         }
-
-
     }
 
     class JsonRenderer extends Renderer {
@@ -238,7 +251,8 @@ define([
                 tooltip: tooltipOptions,
                 chart: {
                     zoomType: 'xy',
-                    type: this.type
+                    type: this.type,
+                    events: {}
                 },
                 xAxis: {
                     allowDecimals: false,
@@ -263,7 +277,9 @@ define([
                 series: [],
                 plotOptions: {
                     series: {
-                        events: {"click": (e) => this.onClick(this.formData, e)}
+                        events: {
+                            "click": (e) => this.onClick(this.formData, e),
+                        }
                     }
                 }
             };
@@ -275,6 +291,7 @@ define([
             if(clickEvent.point.ids instanceof Array && clickEvent.point.ids.length > 0){
                 return {"ids": clickEvent.point.ids.join(",")};
             }
+
             return intersectFilters(super.getOnClickFilters(formData, clickEvent), clickEvent.point.pointFilters);
         }
 
@@ -331,9 +348,106 @@ define([
                 });
             }
 
+            container.append($("<div class='ht'></div>"));
+
             const chartOptions = this.getChartOptions();
 
-            if (primary && !secondary && value1 && !value2) {
+            if (primary && secondary && value1 && value2){
+                // 2 aggrs + 2 values
+                container.find(".ht").after(
+                    $("<br/><center><i>This is a multi-level chart. Click on a label directly under a " +
+                    "bar to drilldown a level.</i></center>")
+                );
+
+                // STEP 1: Add pre-drilldown data: 1 aggregation + 2 values. This almost the same as the routine used
+                // for 1 aggregation and 2 values.
+
+                // Add bars (first value)
+                chartOptions.series.push({
+                    name: getOptionLabel(value1, 0),
+                    data: $(data).map((i, point) => {
+                        if (point.value[1][0] === null) return null;
+                        var pointData = this.getPointData(point.value, 0);
+                        pointData.drilldown = pointData.name;
+                        return [pointData];
+                    })
+                });
+
+                // Add line (second value)
+                chartOptions.series.push({
+                    name: getOptionLabel(value2, 1),
+                    yAxis: 1,
+                    type: this.secondSeriesType === null ? "scatter" : this.secondSeriesType,
+                    data: $(data).map((i, point) => {
+                        if (point.value[1][1] === null) return null;
+                        var pointData = this.getPointData(point.value, 1);
+                        pointData.drilldown = pointData.name;
+                        return [pointData];
+                    })
+                });
+
+                // Add second y-axis
+                chartOptions.yAxis.push({
+                    title: {"text": getYLabel(value2, 1)},
+                    opposite: true
+                });
+
+                chartOptions.drilldown = {
+                    series: []
+                }
+
+                // Add drilldown bars (first value)
+                data.forEach(point => {
+                    var drilldownName = this.getPointData(point.value, 0).name;
+                    chartOptions.drilldown.series.push({
+                        name: drilldownName,
+                        id: drilldownName,
+                        data: $(point.drilldown).map((i, pointd) => {
+                            var pointdd = this.getPointData(pointd, 0);
+                            pointdd.name = pointd[0][1].label;
+                            return [pointdd];
+                        })
+                    });
+                });
+
+                // Add drilldown line (second value)
+                data.forEach(point => {
+                    var drilldownName = this.getPointData(point.value, 0).name;
+                    chartOptions.drilldown.series.push({
+                        // TODO: Figure out how to fix this with CSS rules?
+                        marker: {
+                            fillColor: "black",
+                        },
+                        yAxis: 1,
+                        name: drilldownName,
+                        id: drilldownName,
+                        type: this.secondSeriesType === null ? "scatter" : this.secondSeriesType,
+                        data: $(point.drilldown).map((i, pointd) => {
+                            var pointdd = this.getPointData(pointd, 1);
+                            console.log(pointd)
+                            pointdd.name = pointd[0][1].label;
+                            return [pointdd];
+                        })
+                    });
+                });
+
+                // Work-around bug in Highcharts causing it to not pickup a second drilldown series on a
+                // secondary axis. The code below manually adds the series.
+                chartOptions.chart.events.drilldown = function(e){
+                    e.preventDefault();
+
+                    var chart = this;
+                    var drilldowns = drilldowns = chart.userOptions.drilldown.series;
+
+                    Highcharts.each(drilldowns, function(p, i) {
+                        if (p.id.includes(e.point.name)) {
+                            chart.addSingleSeriesAsDrilldown(e.point, p);
+                        }
+                    });
+
+                    chart.applyDrilldown();
+                }
+            } else if (primary && !secondary && value1 && !value2) {
                 // 1 aggr + 1 value
                 chartOptions.series.push({
                     name: primary,
@@ -366,7 +480,7 @@ define([
 
                 chartOptions.series = Array.from(Object.values(series));
             } else {
-
+                // 1 aggr + 2 values
                 // Add bars (first value)
                 chartOptions.series.push({
                     name: getOptionLabel(value1, 0),
@@ -393,7 +507,6 @@ define([
                     opposite: true
                 });
             }
-            container.append($("<div class='ht'></div>"));
 
             return container.find(".ht").highcharts(chartOptions).highcharts();
         }
