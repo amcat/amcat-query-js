@@ -322,7 +322,7 @@ define([
                 pointData.name = point[0][0].label;
             }
             else if(isNaN(parseFloat(point[0][0]))) {
-                pointData.name = point[0][0].label;
+                pointData.name = point[0][0];
             }
             else{
                 pointData.x = point[0][0];
