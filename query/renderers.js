@@ -216,7 +216,7 @@ define([
 
     class JsonRenderer extends Renderer {
         render(formData, container, data) {
-            super.render(form_data, container, matrix, extraOptions);
+            super.render(form_data, container, data, extraOptions);
             let text = JSON.stringify(data, null, "  ");
             let code = $("<code class='json'>").text(text);
             $(container).append($('<pre style="background-color:#f8f8ff;">').append(code));
@@ -256,7 +256,7 @@ define([
             const primary = this.formData.primary;
             const secondary = this.formData.secondary;
             const chartOptions = {
-                title: "",
+                title: { text: ""},
                 tooltip: tooltipOptions,
                 chart: {
                     zoomType: 'xy',
@@ -343,7 +343,7 @@ define([
         }
 
         render(formData, container, data, extraOptions) {
-            super.render(form_data, container, matrix, extraOptions);
+            super.render(formData, container, data, extraOptions);
             this.formData = formData;
             const primary = formData.primary;
             const secondary = formData.secondary;
@@ -858,7 +858,7 @@ define([
             var y_renderer = this.getValueRenderer(form_data["y_axis"]);
 
             container.highcharts({
-                title: "",
+                title: {text: ""},
                 chart: {type: 'heatmap'},
                 colorAxis: {
                     min: 0,
