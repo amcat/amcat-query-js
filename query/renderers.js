@@ -164,10 +164,11 @@ define([
 
     class Renderer {
         constructor() {
+            this.extraOptions = null;
         }
 
-        render(formData, container, data) {
-
+        render(formData, container, data, extraOptions) {
+            this.extraOptions = extraOptions;
         }
 
         /**
@@ -204,10 +205,18 @@ define([
                 throw "HACK: prevent onClick from activating drilldown."
             }
         }
+
+        getValueRenderer(name){
+            if(this.extraOptions != null && this.extraOptions.valueRendererOptions != null) {
+                return value_renderers.getRenderer(name, null, this.extraOptions.valueRendererOptions);
+            }
+            return value_renderers.getRenderer(name);
+        }
     }
 
     class JsonRenderer extends Renderer {
         render(formData, container, data) {
+            super.render(form_data, container, matrix, extraOptions);
             let text = JSON.stringify(data, null, "  ");
             let code = $("<code class='json'>").text(text);
             $(container).append($('<pre style="background-color:#f8f8ff;">').append(code));
@@ -260,7 +269,7 @@ define([
                     labels: {
                         formatter: function () {
                             if(typeof(this.value) === "string") return this.value;
-                            const renderer = value_renderers.getRenderer(primary);
+                            const renderer = this.getValueRenderer(primary);
                             let val = renderer(this.value);
                             return `${val}`;
                         }
@@ -313,7 +322,7 @@ define([
             const secondary = this.formData.secondary;
             series = series === undefined ? 0 : series;
             const pointData = {y: point[1][series]};
-            if(pointData.y.length == 2){
+            if(pointData.y.length === 2){
                 pointData.ids = pointData.y[1];
                 pointData.y = pointData.y[0];
             }
@@ -333,7 +342,8 @@ define([
             return pointData;
         }
 
-        render(formData, container, data) {
+        render(formData, container, data, extraOptions) {
+            super.render(form_data, container, matrix, extraOptions);
             this.formData = formData;
             const primary = formData.primary;
             const secondary = formData.secondary;
@@ -548,7 +558,9 @@ define([
      * where needed.
      */
     class AggregationTableRenderer extends Renderer {
-        render(form_data, container, matrix) {
+        render(form_data, container, matrix, extraOptions) {
+            super.render(form_data, container, matrix, extraOptions);
+            this.formData = form_data;
             const thead = $("<thead>").append($("<th>"));
             const tbody = $("<tbody>");
             const table = $("<table>").addClass("aggregation dataTable table table-striped");
@@ -571,13 +583,13 @@ define([
                 thead.append($("<th>").text(value2type));
             } else if (!value2) {
                 // N columns needed, all of the same type
-                renderer = value_renderers.getRenderer(secondary);
+                renderer = this.getValueRenderer(secondary);
                 $.map(matrix.columns, function (column) {
                     thead.append($("<th>").text(renderer(column)).data("value", column));
                 });
             } else {
                 // Complex column (N columns + 2 values per column) needed
-                renderer = value_renderers.getRenderer(secondary);
+                renderer = this.getValueRenderer(secondary);
 
                 // Add first header row
                 thead.html("<tr><th rowspan='2'></th></tr>");
@@ -605,7 +617,7 @@ define([
             row_template = (new Array(matrix.columns.length * numberOfValues + 1)).join("<td></td>");
             row_template = "<tr><th></th>" + row_template + "</tr>";
 
-            renderer = value_renderers.getRenderer(primary);
+            renderer = this.getValueRenderer(primary);
 
             $.each(matrix.data, function (rownr, rowdata) {
                 // Set th elements text- and value property
@@ -842,8 +854,8 @@ define([
                     heatmap_data.push([rowIdx, fieldIdx, fieldValue])
                 });
             });
-            var x_renderer = value_renderers.getRenderer(form_data["x_axis"]);
-            var y_renderer = value_renderers.getRenderer(form_data["y_axis"]);
+            var x_renderer = this.getValueRenderer(form_data["x_axis"]);
+            var y_renderer = this.getValueRenderer(form_data["y_axis"]);
 
             container.highcharts({
                 title: "",
@@ -868,13 +880,13 @@ define([
             });
         },
 
-        "text/json+aggregation+line": (form_data, container, data) => new LineChartRenderer().render(form_data, container, data),
+        "text/json+aggregation+line": (...args) => new LineChartRenderer().render(...args),
 
-        "text/json+aggregation+scatter": (form_data, container, data) => new ScatterChartRenderer().render(form_data, container, data),
+        "text/json+aggregation+scatter": (...args) => new ScatterChartRenderer().render(...args),
 
-        "text/json+aggregation+barplot": (form_data, container, data) => new BarChartRenderer().render(form_data, container, data),
+        "text/json+aggregation+barplot": (...args) => new BarChartRenderer().render(...args),
 
-        "text/json+aggregation+table": (formData, container, matrix) => new AggregationTableRenderer().render(formData, container, matrix)
+        "text/json+aggregation+table": (...args) => new AggregationTableRenderer().render(...args)
     });
 });
 

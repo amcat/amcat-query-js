@@ -2,8 +2,12 @@
 define(["moment", "query/utils/i18n"], function (moment, i18n) {
 
     const _ = i18n.gettext;
-    // simple renderers
 
+    const defaultOptions = Object.freeze({
+        neverShowId: false
+    });
+
+    // simple renderers
     function renderIdAndLabel(obj) {
         return obj.id + " - " + obj.label;
     }
@@ -60,11 +64,19 @@ define(["moment", "query/utils/i18n"], function (moment, i18n) {
             this.renderfn = renderfn;
         }
 
-        getRenderFn(match) {
+        getRenderFn(match, options) {
+            let renderer;
             if (this.renderfn instanceof ValueRenderFnFactory) {
-                return this.renderfn.getRenderFn(match);
+                renderer = this.renderfn.getRenderFn(match);
             }
-            return this.renderfn;
+            else {
+                renderer = this.renderfn;
+            }
+
+            if(options.neverShowId && renderer === renderIdAndLabel){
+                renderer = renderLabel;
+            }
+            return renderer;
         }
 
         match(name) {
@@ -84,14 +96,15 @@ define(["moment", "query/utils/i18n"], function (moment, i18n) {
         new ValueRenderer(/_date$/, new DateRenderFnFactory())
     ];
 
-    function getRenderer(name, deflt) {
+    function getRenderer(name, deflt, options) {
+        options = {...defaultOptions, ...options};
         for (let renderer of renderers) {
             let match = renderer.match(name);
             if (match !== null) {
-                return renderer.getRenderFn(match);
+                return renderer.getRenderFn(match, options);
             }
         }
-        if (deflt) {
+        if (deflt != null) {
             return deflt;
         }
         throw new Error("Could not find value renderer '" + name + "'");
