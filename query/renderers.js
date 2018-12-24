@@ -252,6 +252,7 @@ define([
         }
 
         getChartOptions() {
+            const self = this;
             const tooltipOptions = this.getTooltipOptions();
             const primary = this.formData.primary;
             const secondary = this.formData.secondary;
@@ -269,7 +270,7 @@ define([
                     labels: {
                         formatter: function () {
                             if(typeof(this.value) === "string") return this.value;
-                            const renderer = this.getValueRenderer(primary);
+                            const renderer = self.getValueRenderer(primary);
                             let val = renderer(this.value);
                             return `${val}`;
                         }
