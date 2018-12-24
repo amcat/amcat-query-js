@@ -291,7 +291,6 @@ define([
             if(clickEvent.point.ids instanceof Array && clickEvent.point.ids.length > 0){
                 return {"ids": clickEvent.point.ids.join(",")};
             }
-
             return intersectFilters(super.getOnClickFilters(formData, clickEvent), clickEvent.point.pointFilters);
         }
 
@@ -427,7 +426,6 @@ define([
                         type: this.secondSeriesType === null ? "scatter" : this.secondSeriesType,
                         data: $(point.drilldown).map((i, pointd) => {
                             var pointdd = this.getPointData(pointd, 1);
-                            console.log(pointd)
                             pointdd.name = pointd[0][1].label;
                             return [pointdd];
                         })

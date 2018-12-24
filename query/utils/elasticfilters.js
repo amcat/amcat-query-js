@@ -55,11 +55,13 @@ define(['query/utils/dates'], (QueryDates) => {
                 ranges.push(filters);
             }
 
-            var range = QueryDates.merge(ranges);
+            let range = QueryDates.merge(ranges);
 
             if (range === null) {
                 range = ranges[1]; //
             }
+
+            range = QueryDates.to_iso_strings(range);
 
             return {
                 datetype: "between",

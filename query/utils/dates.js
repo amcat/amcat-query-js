@@ -64,8 +64,8 @@ define(["jquery", "moment"], function($, moment){
                 throw new Error("Invalid date");
             }
             return {
-                start_date: start.unix() * 1000 - 86400000,
-                end_date: end.unix() * 1000 - 86400000
+                start_date: start.unix() * 1000,
+                end_date: end.unix() * 1000
             }
         },
 
@@ -118,6 +118,12 @@ define(["jquery", "moment"], function($, moment){
             }
 
             return QueryDates.get_default_range($("form"));
+        },
+
+        to_iso_strings: function (range) {
+            const start_date = new Date(range.start_date).toISOString();
+            const end_date = new Date(range.end_date).toISOString();
+            return {start_date, end_date}
         }
     });
 
