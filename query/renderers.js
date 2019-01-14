@@ -180,7 +180,7 @@ define([
             if(formData.articlesets.length > 0){
                 filters.push({sets: formData.articlesets});
             }
-            
+
             if(formData.filters.startsWith('{')) {
                 filters.push(JSON.parse(formData.filters));
             }
@@ -336,10 +336,11 @@ define([
             else{
                 pointData.x = point[0][0];
             }
-            pointData.pointFilters = {
-                ...this.getFilter(primary, point[0][0]),
-                ...this.getFilter(secondary, point[0][1])
-            };
+            pointData.pointFilters = Object.assign(
+                {},
+                this.getFilter(primary, point[0][0]),
+                this.getFilter(secondary, point[0][1])
+            );
             return pointData;
         }
 
