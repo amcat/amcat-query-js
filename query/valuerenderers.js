@@ -97,7 +97,7 @@ define(["moment", "query/utils/i18n"], function (moment, i18n) {
     ];
 
     function getRenderer(name, deflt, options) {
-        options = {...defaultOptions, ...options};
+        options = Object.assign({}, defaultOptions, options);
         for (let renderer of renderers) {
             let match = renderer.match(name);
             if (match !== null) {
