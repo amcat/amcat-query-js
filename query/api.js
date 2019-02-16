@@ -68,7 +68,7 @@ define(["jquery", "query/utils/poll", "query/utils/format"], function($, poll){
             urls: {
                 get_token: 'get_token/',
                 search: 'search/',
-                action: 'query/{action}?format=json&project={project}&sets={sets}&jobs={jobs}',
+                action: 'query/{action}?format=json&project={project}',
                 saved_query: 'projects/{project}/querys/{query}/'
             }
         }, options);
@@ -99,11 +99,12 @@ define(["jquery", "query/utils/poll", "query/utils/format"], function($, poll){
              * @returns: url (string)
              */
             getActionUrl: function(action, project, jobs, sets){
+                if(jobs !== undefined || sets !== undefined){
+                    console.error(new Error("The jobs and sets parameters in getActionUrl are deprecated"));
+                }
                 return api.getUrl(options.urls.action.format({
                     action: action,
-                    project: project,
-                    sets: sets.join(","),
-                    jobs: jobs.join(",")
+                    project: project
                 }));
             },
 
